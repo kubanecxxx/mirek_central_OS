@@ -198,12 +198,14 @@ static void Init_FSMC(void)
  */
 void Delay_ms(__IO uint32_t nTime)
 {
-	uint32_t TimingDelay = 0;
+	/*uint32_t TimingDelay = 0;
 
 	TimingDelay = nTime;
 	TimingDelay <<= 10;
 
 	while (TimingDelay--)
 	{
-	}
+	}*/
+
+	chThdSleepMilliseconds(nTime);
 }
