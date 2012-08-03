@@ -1,0 +1,6 @@
+[submodule "ssd1289"]
+	path = ssd1289
+	url = git@github.com:kubanecxxx/ssd1289_lld.git
+[submodule "fonts"]
+	path = fonts
+	url = git@github.com:kubanecxxx/fonts.git

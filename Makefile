@@ -89,6 +89,13 @@ CSRC = $(PORTSRC) \
        
 CSRC += main.c
 
+port = port
+ssd = ssd1289
+fonts = fonts
+
+CSRC += $(ssd)/print.c $(ssd)/ssd1289_lld.c $(fonts)/fonts.c $(port)/stm32f4xx_fsmc.c
+CSRC += $(port)/ssd1289_port.c 
+
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
 CPPSRC =

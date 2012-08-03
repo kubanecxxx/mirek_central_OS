@@ -29,6 +29,8 @@
 #include "shell.h"
 #include "chprintf.h"
 
+#include "ssd1289/ssd1289_lld.h"
+
 /*===========================================================================*/
 /* USB related stuff.                                                        */
 /*===========================================================================*/
@@ -457,6 +459,11 @@ int main(void) {
    * Creates the blinker thread.
    */
   chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL);
+
+
+  //init tft display
+  tft_InitLCD();
+  tft_ClearScreen(LCD_GREEN);
 
   /*
    * Normal main() thread activity, in this demo it does nothing except
