@@ -14,6 +14,8 @@
 #include "chprintf.h"
 #include "ssd1289/ssd1289_lld.h"
 #include "ssd1289/print.h"
+#include "stdlib.h"
+#include "i2c_user.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -60,7 +62,7 @@ static void cmd_threads(BaseSequentialStream *chp, int argc, char *argv[])
 				(uint32_t) (tp->p_refs - 1), states[tp->p_state],
 				(uint32_t) tp->p_time);
 		tp = chRegNextThread(tp);
-	} while (tp != NULL);
+	} while (tp != NULL );
 }
 
 static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[])
@@ -75,7 +77,7 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	tp = chThdCreateFromHeap(NULL, TEST_WA_SIZE, chThdGetPriority(), TestThread,
 			chp);
-	if (tp == NULL)
+	if (tp == NULL )
 	{
 		chprintf(chp, "out of memory\r\n");
 		return;
@@ -100,6 +102,42 @@ static void cmd_clear(BaseSequentialStream *chp, int argc, char *argv[])
 	tft_ClearScreen(LCD_BLUE);
 }
 
+/*
+ * harm commmand
+ */
+static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	uint8_t txbuf[3];
+	uint8_t msg;
+	//cvak dolu
+	if (argc == 0)
+	{
+		txbuf[0] = 1;
+		txbuf[1] = 0;
+
+		i2cAcquireBus(&I2CD1);
+		msg = i2cMasterTransmitTimeout(&I2CD1, PCA, txbuf, 2, NULL, 0,
+				TIME_INFINITE );
+		i2cReleaseBus(&I2CD1);
+
+		chThdSleepMilliseconds(2000);
+
+		txbuf[1] |= _BV(1);
+		i2cAcquireBus(&I2CD1);
+		msg = i2cMasterTransmitTimeout(&I2CD1, PCA, txbuf, 2, NULL, 0,
+				TIME_INFINITE );
+		i2cReleaseBus(&I2CD1);
+	}
+	else if (argc == 2)
+	{
+		set_harmonist(atoi(argv[0]), atoi(argv[1]));
+	}
+	else
+	{
+		chprintf(chp, "picu!!!\n\r");
+	}
+}
+
 const ShellCommand commands[] =
 {
 { "mem", cmd_mem },
@@ -107,6 +145,6 @@ const ShellCommand commands[] =
 { "test", cmd_test },
 { "dezo", cmd_dezo },
 { "clear", cmd_clear },
+{ "harm", cmd_harmonist },
 { NULL, NULL } };
-
 

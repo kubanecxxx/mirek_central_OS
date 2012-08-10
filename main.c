@@ -23,48 +23,17 @@
 
 #include "ch.h"
 #include "hal.h"
-#include "test.h"
-
-#include "usb_cdc.h"
 #include "shell.h"
-#include "chprintf.h"
 
 #include "ssd1289/ssd1289_lld.h"
 #include "ssd1289/print.h"
 
 #include "i2c_user.h"
-
-/*===========================================================================*/
-/* Command line related.                                                     */
-/*===========================================================================*/
-
+#include "usb_user.h"
 
 /*===========================================================================*/
 /* Generic code.                                                             */
 /*===========================================================================*/
-
-/*u
- * Red LED blinker thread, times are in milliseconds.
- */
-static WORKING_AREA(waThread1, 128);
-static msg_t Thread1(void *arg)
-{
-
-	(void) arg;
-	chRegSetThreadName("blinker");
-	while (TRUE)
-	{
-		palClearPad(GPIOD, GPIOD_LED4);
-		chThdSleepMilliseconds(500);
-		palSetPad(GPIOD, GPIOD_LED4);
-		chThdSleepMilliseconds(500);
-	}
-	return 0;
-}
-
-/*
- * Application entry point.
- */
 int main(void)
 {
 	/*
@@ -89,11 +58,6 @@ int main(void)
 	shellInit();
 
 	/*
-	 * Creates the blinker thread.
-	 */
-	chThdCreateStatic(waThread1, sizeof(waThread1), NORMALPRIO, Thread1, NULL );
-
-	/*
 	 * Init tft display ssd1289
 	 */
 	tft_InitLCD();
@@ -110,6 +74,7 @@ int main(void)
 	 */
 	while (TRUE)
 	{
-		chThdSleepMilliseconds(1000);
+		chThdSleepMilliseconds(200);
+		palTogglePad(GPIOD,12);
 	}
 }

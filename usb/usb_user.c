@@ -293,11 +293,11 @@ static void usb_user_thread(void * nic)
 	(void) nic;
 	Thread *shelltp = NULL;
 
+	chThdSleepMilliseconds(1000);
+
 	sduObjectInit(&SDU1);
 	sduStart(&SDU1, &serusbcfg);
 	usbConnectBus(serusbcfg.usbp);
-
-	chThdSleepMilliseconds(1000);
 
 	while (TRUE)
 	{
