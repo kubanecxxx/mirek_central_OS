@@ -15,7 +15,6 @@ extern "C"
 #endif
 
 /* Includes ------------------------------------------------------------------*/
-#include "i2c_user.h"
 
 /* Exported types ------------------------------------------------------------*/
 
@@ -31,9 +30,9 @@ typedef union
 		uint16_t PITCH_SHIFT;
 		uint16_t DETUNE;
 		uint16_t SBEND;
-	}s;
+	} s;
 	uint16_t a[5];
-}harmonizer_mode_t;
+} harmonizer_mode_t;
 
 /*
  * KEY
@@ -55,9 +54,9 @@ typedef union
 		uint16_t A;
 		uint16_t Ax;
 		uint16_t H;
-	}s;
+	} s;
 	uint16_t a[12];
-}harmonizer_key_t;
+} harmonizer_key_t;
 
 /*
  * HARMONY
@@ -65,14 +64,14 @@ typedef union
 typedef union
 {
 	uint16_t a[11];
-}harmonizer_harmony_t;
+} harmonizer_harmony_t;
 
 typedef struct harmonizer_t
 {
 	harmonizer_mode_t MODE;
 	harmonizer_key_t KEY;
 	harmonizer_harmony_t HARMONY;
-}harmonizer_t;
+} harmonizer_t;
 
 /* Exported constants --------------------------------------------------------*/
 /*
@@ -80,63 +79,19 @@ typedef struct harmonizer_t
  */
 typedef enum
 {
-	CHAN_MODE = 0, CHAN_KEY=2, CHAN_HARM=3
-}DAC_channel;
+	CHAN_MODE = 0, CHAN_KEY = 2, CHAN_HARM = 3
+} DAC_channel;
 
 /*
  * HARMONIST PCA PINS
  */
 typedef enum
 {
-	HARM_LDAC = 0, HARM_EFF=1, HARM_BUT, HARM_LED
-}HARM_pins;
+	HARM_LDAC = 0, HARM_EFF = 1, HARM_BUT, HARM_LED
+} HARM_pins;
 
-const harmonizer_t HARMONIZER =
-{
-	/*
-	 * MODEs
-	 */
-	{
-		DAC_VOLTAGE(0),
-		DAC_VOLTAGE(0.151),
-		DAC_VOLTAGE(0.494),
-		DAC_VOLTAGE(0.839),
-		DAC_VOLTAGE(1.201)
-	},
-	/*
-	 * KEY
-	 */
-	{
-		DAC_VOLTAGE(0),
-		DAC_VOLTAGE(0.181),
-		DAC_VOLTAGE(0.493),
-		DAC_VOLTAGE(0.810),
-		DAC_VOLTAGE(1.129),
-		DAC_VOLTAGE(1.462),
-		DAC_VOLTAGE(1.810),
-		DAC_VOLTAGE(2.141),
-		DAC_VOLTAGE(2.464),
-		DAC_VOLTAGE(2.786),
-		DAC_VOLTAGE(3.104),
-		DAC_VOLTAGE(3.288)
-	},
-	/*
-	 * HARMONY
-	 */
-	{
-		DAC_VOLTAGE(0),
-		DAC_VOLTAGE(0.205),
-		DAC_VOLTAGE(0.558),
-		DAC_VOLTAGE(0.867),
-		DAC_VOLTAGE(1.254),
-		DAC_VOLTAGE(1.661),
-		DAC_VOLTAGE(2.041),
-		DAC_VOLTAGE(2.436),
-		DAC_VOLTAGE(2.765),
-		DAC_VOLTAGE(3.132),
-		DAC_VOLTAGE(3.228)
-	}
-};
+extern const harmonizer_t HARMONIZER;
+
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 
