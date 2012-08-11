@@ -3,6 +3,7 @@
  * @author kubanec
  * @date 10.8.2012
  *
+ * @brief harmonist voltage constants
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
@@ -17,7 +18,9 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 
 /* Exported types ------------------------------------------------------------*/
-
+#define HARM_MODE_COUNT 5
+#define HARM_KEY_COUNT 12
+#define HARM_SHIFT_COUNT 11
 /*
  * MODE
  */
@@ -31,7 +34,7 @@ typedef union
 		uint16_t DETUNE;
 		uint16_t SBEND;
 	} s;
-	uint16_t a[5];
+	uint16_t a[HARM_MODE_COUNT];
 } harmonizer_mode_t;
 
 /*
@@ -55,7 +58,7 @@ typedef union
 		uint16_t Ax;
 		uint16_t H;
 	} s;
-	uint16_t a[12];
+	uint16_t a[HARM_KEY_COUNT];
 } harmonizer_key_t;
 
 /*
@@ -63,7 +66,7 @@ typedef union
  */
 typedef union
 {
-	uint16_t a[11];
+	uint16_t a[HARM_SHIFT_COUNT];
 } harmonizer_harmony_t;
 
 typedef struct harmonizer_t
@@ -87,13 +90,29 @@ typedef enum
  */
 typedef enum
 {
-	HARM_LDAC = 0, HARM_EFF = 1, HARM_BUT, HARM_LED
+	HARM_LDAC = 0, HARM_EFF = 1, HARM_BUT = 2, HARM_LED = 3
 } HARM_pins;
 
+/*
+ * voltage constants set for Harmonizer analog inputs
+ */
 extern const harmonizer_t HARMONIZER;
+
+/*
+ * I2C address set for harmonizer - PCA9536 + MCP4728
+ */
+#define HARM_PCA 0b1000001 //Harmnoist PCA 7-bit address
+#define DACAN 0b1100000 //DAC 7-bit address MCP4728
+/**
+ * @brief output voltage to bits DAC MCP4728
+ */
+#define Vref 3.3
+#define DAC_VOLTAGE(Vout) ((uint16_t)(Vout*4096/Vref))
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
+void harm_init(void);
+void set_harmonist(uint8_t channel, uint8_t index);
 
 #ifdef __cplusplus
 }

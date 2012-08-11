@@ -31,6 +31,41 @@
 #include "i2c_user.h"
 #include "usb_user.h"
 
+/*
+ * external interrupt system config
+ */
+/*
+ * external interrupt callback prototype - PCA_BUTTONS interrupt
+ */
+void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel);
+static const EXTConfig extcfg =
+{
+{
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC,
+		foot_buttons_interrupt },	//PC15
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL },
+{ EXT_CH_MODE_DISABLED, NULL } } };
+
 /*===========================================================================*/
 /* Generic code.                                                             */
 /*===========================================================================*/
@@ -63,11 +98,15 @@ int main(void)
 	tft_InitLCD();
 	tft_ClearScreen(LCD_BLUE);
 
+	/*
+	 * start external interrupt system
+	 */
+	extStart(&EXTD1, &extcfg);
+
 	/**
 	 * @brief init I2C1, make i2c1 thread
 	 */
 	i2c1_init();
-
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
 	 * sleeping in a loop and check the button state.
@@ -75,6 +114,6 @@ int main(void)
 	while (TRUE)
 	{
 		chThdSleepMilliseconds(200);
-		palTogglePad(GPIOD,12);
+		palTogglePad(GPIOD, 12);
 	}
 }

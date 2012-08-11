@@ -16,6 +16,7 @@
 #include "ssd1289/print.h"
 #include "stdlib.h"
 #include "i2c_user.h"
+#include "harmonist.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -116,15 +117,15 @@ static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 		txbuf[1] = 0;
 
 		i2cAcquireBus(&I2CD1);
-		msg = i2cMasterTransmitTimeout(&I2CD1, PCA, txbuf, 2, NULL, 0,
+		msg = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
 				TIME_INFINITE );
 		i2cReleaseBus(&I2CD1);
 
-		chThdSleepMilliseconds(2000);
+		chThdSleepMilliseconds(20);
 
 		txbuf[1] |= _BV(1);
 		i2cAcquireBus(&I2CD1);
-		msg = i2cMasterTransmitTimeout(&I2CD1, PCA, txbuf, 2, NULL, 0,
+		msg = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
 				TIME_INFINITE );
 		i2cReleaseBus(&I2CD1);
 	}
