@@ -27,6 +27,7 @@
 
 #include "ssd1289/ssd1289_lld.h"
 #include "ssd1289/print.h"
+#include "touch.h"
 
 #include "i2c_user.h"
 #include "usb_user.h"
@@ -48,11 +49,11 @@ static const EXTConfig extcfg =
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
+{ TOUCH_EXTI },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
-{ EXT_CH_MODE_DISABLED, NULL },
-{ EXTERNAL_INTERRUPT_PCA },	//PC15
+{ EXTERNAL_INTERRUPT_PCA },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
@@ -91,6 +92,7 @@ int main(void)
 	 * Init tft display ssd1289
 	 */
 	tft_InitLCD();
+	touch_init();
 	tft_ClearScreen(LCD_BLUE);
 
 	/*
@@ -101,14 +103,29 @@ int main(void)
 	/**
 	 * @brief init I2C1, make i2c1 thread
 	 */
-	i2c1_init();
+	//i2c1_init();
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
 	 * sleeping in a loop and check the button state.
 	 */
+
+	EventListener el;
+	chEvtRegister(&event_touch, &el, TOUCH_PUSH);
+
 	while (TRUE)
 	{
-		chThdSleepMilliseconds(200);
-		palTogglePad(GPIOD, 12);
+		chThdSleepMilliseconds(3);
+		if (touch_getState() == PUSHED)
+		{
+			palSetPad(GPIOD, 12);
+			tft_DrawPixel(touch_coor.x, touch_coor.y, LCD_BLACK);
+		}
+		else
+		{
+			palClearPad(GPIOD, 12);
+			chEvtWaitAny(TOUCH_PUSH);
+		}
+
 	}
+
 }

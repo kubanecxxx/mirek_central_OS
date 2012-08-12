@@ -99,6 +99,7 @@ static void i2c_receive_thread(void * data)
 {
 	(void) data;
 
+	chRegSetThreadName("i2c footswitch");
 	uint8_t txbuf = PCA_IDR;
 	uint8_t rxbuf[2];
 

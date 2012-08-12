@@ -44,7 +44,8 @@ static void i2c1_thread(void * data)
 	/*
 	 * fill DAC with default values and PCA setup
 	 */
-//	harm_init();
+	chRegSetThreadName("i2c");
+	harm_init();
 	/*
 	 * setup footswitch PCAs
 	 */

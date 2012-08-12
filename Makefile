@@ -74,6 +74,7 @@ include $(CHIBIOS)/test/test.mk
 
 include i2c/i2c_user.mk
 include usb/usb_user.mk
+include touch/touch.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/STM32F407xG.ld
@@ -99,7 +100,7 @@ ssd = ssd1289
 fonts = fonts
 
 CSRC += $(ssd)/print.c $(ssd)/ssd1289_lld.c $(fonts)/fonts.c $(port)/stm32f4xx_fsmc.c
-CSRC += $(port)/ssd1289_port.c
+CSRC += $(port)/ssd1289_port.c 
 
 #i2c = i2c
 #CSRC += $(i2c)/i2c_driver.c   $(i2c)/stm32f4xx_i2c.c $(i2c)/stm32f4xx_rcc.c $(i2c)/i2c_test.c 
@@ -131,7 +132,7 @@ TCPPSRC =
 # List ASM source files here
 ASMSRC = $(PORTASM)
 
-INCDIR = $(PORTINC) $(KERNINC) $(TESTINC) \
+INCDIR += $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various $(I2C_USER_INC) \
          $(USB_USER_INC) 
