@@ -10,7 +10,6 @@
 #include "hal.h"
 #include "i2c_user.h"
 #include "harmonist.h"
-#include "footswitch.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -65,7 +64,8 @@ void i2c1_init(void)
 	//pins are already initialized in board.h
 	i2cStart(&I2CD1, &i2c1_config);
 
-	chThdCreateStatic(wa_i2c1, sizeof(wa_i2c1), NORMALPRIO, (tfunc_t)i2c1_thread, NULL );
+	chThdCreateStatic(wa_i2c1, sizeof(wa_i2c1), NORMALPRIO,
+			(tfunc_t) i2c1_thread, NULL );
 }
 
 /**

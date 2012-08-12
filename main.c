@@ -34,10 +34,6 @@
 /*
  * external interrupt system config
  */
-/*
- * external interrupt callback prototype - PCA_BUTTONS interrupt
- */
-void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel);
 static const EXTConfig extcfg =
 {
 {
@@ -56,8 +52,7 @@ static const EXTConfig extcfg =
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
-{ EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC,
-		foot_buttons_interrupt },	//PC15
+{ EXTERNAL_INTERRUPT_PCA },	//PC15
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL },

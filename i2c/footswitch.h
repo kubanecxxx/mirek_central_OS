@@ -22,7 +22,7 @@ typedef struct
 {
 	uint16_t count;
 	uint16_t pin;
-} foot_t;
+}foot_t;
 /* Exported constants --------------------------------------------------------*/
 /*
  * External interrupt pin from PCA buttons
@@ -62,9 +62,12 @@ extern volatile foot_t footswitch;
 #define foot_SetLedsYellow(data) _foot_SetLeds(PCA_LED_1_ADDRESS,data)
 #define foot_SetLedsGreen(data) _foot_SetLeds(PCA_LED_2_ADDRESS,data)
 #define foot_SetLedsBoth(yellow,green) foot_SetLedsYellow(yellow); foot_SetLedsGreen(green)
+
+#define EXTERNAL_INTERRUPT_PCA  EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC, foot_buttons_interrupt
 /* Exported functions --------------------------------------------------------*/
 void foot_init(void);
 void _foot_SetLeds(uint8_t address, uint8_t data);
+void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel);
 
 #ifdef __cplusplus
 }
