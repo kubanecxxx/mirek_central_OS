@@ -11,11 +11,12 @@
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
+#define EVENT_ID 1
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 Thread * foot_thd;
-foot_t footswitch;
-//EVENTSOURCE_DECL(i2c_interrupt_event);
+volatile foot_t footswitch;
+EVENTSOURCE_DECL(event_i2c_buttons);
 
 /* Private function prototypes -----------------------------------------------*/
 static WORKING_AREA(wa_i2c_receive_thread,256);
@@ -80,18 +81,15 @@ void foot_init(void)
 static void timeout_cb(void * data)
 {
 	(void) data;
-	//send event k vyššímu zpracování
+	//broadcast event
+	chSysLockFromIsr()
+	;
+	chEvtBroadcastFlagsI(&event_i2c_buttons, BUTTON_EVENT_ID);
+	chSysUnlockFromIsr()
+	;
 
 	footswitch.count = 0;
 	footswitch.pin = 0;
-}
-
-/**
- * @brief re-enable external interrupt after some miliseconds
- */
-static void glitch_timeout(void * data)
-{
-	extChannelEnableI(data, PCA_INTERRUPT);
 }
 
 /**
@@ -100,11 +98,6 @@ static void glitch_timeout(void * data)
 static void i2c_receive_thread(void * data)
 {
 	(void) data;
-/*
-	EventListener el;
-	chEvtInit(&i2c_interrupt_event);
-	chEvtRegisterMask(&i2c_interrupt_event, &el, 1);
-*/
 
 	uint8_t txbuf = PCA_IDR;
 	uint8_t rxbuf[2];
@@ -112,10 +105,10 @@ static void i2c_receive_thread(void * data)
 	footswitch.count = 0;
 	footswitch.pin = 0;
 
-	chThdSleep(TIME_INFINITE );
-
 	while (TRUE)
 	{
+		chEvtWaitAll(EVENT_ID);
+
 		i2cAcquireBus(&I2CD1);
 		i2cMasterTransmit(&I2CD1, PCA_BUTTONS_ADDRESS, &txbuf, 1, rxbuf, 2);
 		i2cReleaseBus(&I2CD1);
@@ -142,8 +135,6 @@ static void i2c_receive_thread(void * data)
 				footswitch.count++;
 			}
 		}
-
-		chThdSleep(TIME_INFINITE );
 	}
 }
 
@@ -153,7 +144,6 @@ static void i2c_receive_thread(void * data)
 void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 {
 	static VirtualTimer vt;
-	static VirtualTimer vt2;
 
 	(void) extp;
 	(void) channel;
@@ -164,14 +154,23 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 	{
 		chVTResetI(&vt);
 	}
-
-	extChannelDisableI(extp, PCA_INTERRUPT);
-	//disable external interrupt to supress glitches
-	chVTSetI(&vt2, MS2ST(10), glitch_timeout, extp); //re-enable after 10ms
 	chVTSetI(&vt, MS2ST(STEP_TIMEOUT), timeout_cb, NULL ); //no another interrupt in 200ms (last step)
-	if (foot_thd->p_state == THD_STATE_SLEEPING)
-		chThdResumeI(foot_thd);
+
+	chEvtSignalFlagsI(foot_thd, EVENT_ID);
 	chSysUnlockFromIsr()
 	;
+}
 
+/**
+ * @brief PCA leds function
+ * @note internal use only
+ */
+void _foot_SetLeds(uint8_t address, uint8_t data)
+{
+	uint8_t txbuf[2];
+	txbuf[0] = PCA_ODR;
+	txbuf[1] = data;
+	i2cAcquireBus(&I2CD1);
+	i2cMasterTransmit(&I2CD1, address, txbuf, 2, NULL, 0);
+	i2cReleaseBus(&I2CD1);
 }

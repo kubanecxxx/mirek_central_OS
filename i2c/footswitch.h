@@ -50,9 +50,21 @@ typedef struct
 #define PCA_INPUT	1
 
 #define STEP_TIMEOUT 500
+
+/*
+ * buttons event ID
+ */
+#define BUTTON_EVENT_ID 1
 /* Exported macro ------------------------------------------------------------*/
+extern EventSource event_i2c_buttons;
+extern volatile foot_t footswitch;
+
+#define foot_SetLedsYellow(data) _foot_SetLeds(PCA_LED_1_ADDRESS,data)
+#define foot_SetLedsGreen(data) _foot_SetLeds(PCA_LED_2_ADDRESS,data)
+#define foot_SetLedsBoth(yellow,green) foot_SetLedsYellow(yellow); foot_SetLedsGreen(green)
 /* Exported functions --------------------------------------------------------*/
 void foot_init(void);
+void _foot_SetLeds(uint8_t address, uint8_t data);
 
 #ifdef __cplusplus
 }
