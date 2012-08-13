@@ -157,14 +157,21 @@ static void i2c_receive_thread(void * data)
 	}
 }
 
+static void glitch(void * data)
+{
+	chSysLockFromIsr();
+	extChannelEnableI(data,15);
+	chSysUnlockFromIsr();
+}
+
 /**
  * @brief external interrupt from PCA_BUTTONS
  */
 void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 {
 	static VirtualTimer vt;
+	static VirtualTimer vt2;
 
-	(void) extp;
 	(void) channel;
 
 	chSysLockFromIsr()
@@ -173,7 +180,9 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 	{
 		chVTResetI(&vt);
 	}
+	extChannelDisableI(extp,channel);
 	chVTSetI(&vt, MS2ST(STEP_TIMEOUT), timeout_cb, NULL ); //no another interrupt in 200ms (last step)
+	chVTSetI(&vt2, MS2ST(30), (vtfunc_t) glitch, extp );
 
 	chEvtSignalFlagsI(foot_thd, EVENT_ID);
 	chSysUnlockFromIsr()
