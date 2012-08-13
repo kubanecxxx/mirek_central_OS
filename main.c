@@ -103,7 +103,9 @@ int main(void)
 	/**
 	 * @brief init I2C1, make i2c1 thread
 	 */
-	//i2c1_init();
+#ifdef I2C_MODULE
+	i2c1_init();
+#endif
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
 	 * sleeping in a loop and check the button state.
@@ -112,8 +114,13 @@ int main(void)
 	EventListener el;
 	chEvtRegister(&event_touch, &el, TOUCH_PUSH);
 
+#ifdef I2C_TEST
+	i2c_test();
+#endif
+
 	while (TRUE)
 	{
+
 		chThdSleepMilliseconds(3);
 		if (touch_getState() == PUSHED)
 		{
@@ -125,7 +132,6 @@ int main(void)
 			palClearPad(GPIOD, 12);
 			chEvtWaitAny(TOUCH_PUSH);
 		}
-
 	}
 
 }

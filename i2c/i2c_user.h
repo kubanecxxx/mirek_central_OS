@@ -22,6 +22,9 @@ extern "C"
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 void i2c1_init(void);
+#ifdef I2C_TEST
+void i2c_test(void);
+#endif
 
 #ifdef __cplusplus
 }

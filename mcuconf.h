@@ -32,6 +32,9 @@
  * 0...3        Lowest...Highest.
  */
 
+#define I2C_MODULE
+#define I2C_TEST
+
 /*
  * HAL driver system settings.
  */

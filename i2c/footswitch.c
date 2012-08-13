@@ -16,6 +16,7 @@
 /* Private variables ---------------------------------------------------------*/
 Thread * foot_thd;
 volatile foot_t footswitch;
+volatile foot_t foot_switch;
 EVENTSOURCE_DECL(event_i2c_buttons);
 
 /* Private function prototypes -----------------------------------------------*/
@@ -43,6 +44,7 @@ static void timeout_cb(void * data);
 void foot_init(void)
 {
 	uint8_t txbuf[3];
+	uint8_t err;
 
 	/*
 	 * config footswitch PCAs direction
@@ -50,7 +52,7 @@ void foot_init(void)
 	txbuf[0] = PCA_DDR;
 	txbuf[1] = 0; //output
 	i2cAcquireBus(&I2CD1);
-	i2cMasterTransmitTimeout(&I2CD1, PCA_LED_1_ADDRESS, txbuf, 2, NULL, 0,
+	err = i2cMasterTransmitTimeout(&I2CD1, PCA_LED_1_ADDRESS, txbuf, 2, NULL, 0,
 			TIME_INFINITE );
 	i2cMasterTransmitTimeout(&I2CD1, PCA_LED_2_ADDRESS, txbuf, 2, NULL, 0,
 			TIME_INFINITE );
@@ -81,15 +83,31 @@ void foot_init(void)
 static void timeout_cb(void * data)
 {
 	(void) data;
+
+	uint16_t temp = 0;
+
+	//bit swap - wrong soldering ...
+	temp |= (footswitch.pin & 0b00100000) << 1;
+	temp |= (footswitch.pin & 0b01000000) >> 6;
+	temp |= (footswitch.pin & 0b00000001) << 2;
+	temp |= (footswitch.pin & 0b00000010) << 2;
+	temp |= (footswitch.pin & 0b00000100) << 2;
+	temp |= (footswitch.pin & 0b00001000) << 2;
+	temp |= (footswitch.pin & 0b10000000) >> 6;
+	temp |= (footswitch.pin & 0b00010000) << 3;
+
+	foot_switch.count = footswitch.count;
+	foot_switch.pin = temp;
+
+	footswitch.count = 0;
+	footswitch.pin = 0;
+
 	//broadcast event
 	chSysLockFromIsr()
 	;
 	chEvtBroadcastFlagsI(&event_i2c_buttons, BUTTON_EVENT_ID);
 	chSysUnlockFromIsr()
 	;
-
-	footswitch.count = 0;
-	footswitch.pin = 0;
 }
 
 /**
@@ -169,8 +187,18 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 void _foot_SetLeds(uint8_t address, uint8_t data)
 {
 	uint8_t txbuf[2];
+	uint8_t temp;
 	txbuf[0] = PCA_ODR;
-	txbuf[1] = data;
+
+	//bit swap because wrong soldering...
+	temp = data;
+	temp &= 0x0F;
+	temp |= ((data & 0b10000000) >> 1);
+	temp |= ((data & 0b01000000) << 1);
+	temp |= ((data & 0b00100000) >> 1);
+	temp |= ((data & 0b00010000) << 1);
+
+	txbuf[1] = temp;
 	i2cAcquireBus(&I2CD1);
 	i2cMasterTransmit(&I2CD1, address, txbuf, 2, NULL, 0);
 	i2cReleaseBus(&I2CD1);
