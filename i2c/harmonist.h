@@ -101,6 +101,7 @@ extern const harmonizer_t HARMONIZER;
 /*
  * I2C address set for harmonizer - PCA9536 + MCP4728
  */
+//@todo přehrát adresu dacana, protože pcav delay má stejnou
 #define HARM_PCA 0b1000001 //Harmnoist PCA 7-bit address
 #define DACAN 0b1100000 //DAC 7-bit address MCP4728
 /**
@@ -111,8 +112,13 @@ extern const harmonizer_t HARMONIZER;
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
+#ifdef I2C_HARMONIST
 void harm_init(void);
 void set_harmonist(uint8_t channel, uint8_t index);
+#else
+#define harm_init() NULL
+#define set_harmonist(x,y) NULL
+#endif
 
 #ifdef __cplusplus
 }

@@ -33,7 +33,12 @@
  */
 
 #define I2C_MODULE
-#define I2C_TEST
+
+#define I2C_DD3
+//#define I2C_HARMONIST
+//#define I2C_FOOTSWITCH
+
+//#define I2C_TEST
 
 /*
  * HAL driver system settings.

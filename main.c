@@ -94,6 +94,8 @@ int main(void)
 	tft_InitLCD();
 	touch_init();
 	tft_ClearScreen(LCD_BLUE);
+	palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
+	palSetPad(GPIOD, 12);
 
 	/*
 	 * start external interrupt system

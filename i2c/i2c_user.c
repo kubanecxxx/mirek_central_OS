@@ -10,6 +10,7 @@
 #include "hal.h"
 #include "i2c_user.h"
 #include "harmonist.h"
+#include "delay.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -44,12 +45,14 @@ void i2c1_init(void)
 
 	/*
 	 * fill DAC with default values and PCA setup
-	 */
-	//harm_init();
+	 */harm_init();
 	/*
 	 * setup footswitch PCAs
 	 */
 	foot_init();
+	/*
+	 * DD3 doesn't need any init
+	 */
 }
 
 #ifdef I2C_TEST
@@ -66,7 +69,7 @@ static void i2c_test_thread(void * data)
 	uint8_t i = 1;
 	uint8_t j = 0;
 
-	chRegSetThreadName("i2c test");
+	chRegSetThreadName("i2c footswitch test");
 
 	/*
 	 * test PCA footswitch leds
@@ -109,19 +112,19 @@ static void i2c_test_thread(void * data)
 		chEvtWaitOne(BUTTON_EVENT_ID);
 		switch (foot_switch.count)
 		{
-		case 0:
+			case 0:
 			foot_SetLedsBoth(0, 0);
 			break;
-		case 1:
+			case 1:
 			foot_SetLedsBoth(0, foot_switch.pin);
 			break;
-		case 2:
+			case 2:
 			foot_SetLedsBoth(foot_switch.pin, 0);
 			break;
-		case 3:
+			case 3:
 			foot_SetLedsBoth(foot_switch.pin, foot_switch.pin);
 			break;
-		default:
+			default:
 			errors++;
 			break;
 		}

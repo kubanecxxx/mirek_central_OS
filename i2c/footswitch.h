@@ -63,11 +63,18 @@ extern volatile foot_t foot_switch;
 #define foot_SetLedsGreen(data) _foot_SetLeds(PCA_LED_2_ADDRESS,data)
 #define foot_SetLedsBoth(yellow,green) foot_SetLedsYellow(yellow); foot_SetLedsGreen(green)
 
-#define EXTERNAL_INTERRUPT_PCA  EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC, foot_buttons_interrupt
 /* Exported functions --------------------------------------------------------*/
+#ifdef I2C_FOOTSWITCH
 void foot_init(void);
 void _foot_SetLeds(uint8_t address, uint8_t data);
 void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel);
+#define EXTERNAL_INTERRUPT_PCA  EXT_CH_MODE_FALLING_EDGE | EXT_CH_MODE_AUTOSTART | EXT_MODE_GPIOC, foot_buttons_interrupt
+#else
+#define foot_init() NULL
+#define _foot_SetLeds(x,y) NULL
+#define foot_buttons_interrupt(a,b) NULL
+#define EXTERNAL_INTERRUPT_PCA 0, NULL
+#endif
 
 #ifdef __cplusplus
 }

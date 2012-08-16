@@ -47,6 +47,7 @@ static void dac_write(DAC_channel channel, uint16_t voltage);
 /**
  * @brief write harmonist DAC value
  */
+#ifdef I2C_HARMONIST
 static void dac_write(DAC_channel channel, uint16_t voltage)
 {
 	uint8_t txbuf[3];
@@ -131,3 +132,4 @@ void set_harmonist(uint8_t channel, uint8_t index)
 		break;
 	}
 }
+#endif

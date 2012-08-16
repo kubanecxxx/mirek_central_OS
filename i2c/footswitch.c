@@ -41,6 +41,7 @@ static void timeout_cb(void * data);
 /**
  * @brief initialize footswitch PCAs, configure external interrupt
  */
+#ifdef I2C_FOOTSWITCH
 void foot_init(void)
 {
 	uint8_t txbuf[3];
@@ -212,3 +213,4 @@ void _foot_SetLeds(uint8_t address, uint8_t data)
 	i2cMasterTransmit(&I2CD1, address, txbuf, 2, NULL, 0);
 	i2cReleaseBus(&I2CD1);
 }
+#endif
