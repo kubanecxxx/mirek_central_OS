@@ -17,6 +17,8 @@
 #include "stdlib.h"
 #include "i2c_user.h"
 #include "harmonist.h"
+#include "delay.h"
+#include "string.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -86,6 +88,7 @@ static void cmd_test(BaseSequentialStream *chp, int argc, char *argv[])
 	chThdWait(tp);
 }
 
+#ifdef TFT_SHELL
 static void cmd_dezo(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	(void) chp;
@@ -102,10 +105,12 @@ static void cmd_clear(BaseSequentialStream *chp, int argc, char *argv[])
 
 	tft_ClearScreen(LCD_BLUE);
 }
+#endif
 
 /*
  * harm commmand
  */
+#ifdef I2C_HARMONIST_SHELL
 static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	uint8_t txbuf[3];
@@ -138,14 +143,61 @@ static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 		chprintf(chp, "picu!!!\n\r");
 	}
 }
+#endif
+
+#ifdef DELAY_SHELL
+static void cmd_delay(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	uint8_t temp;
+
+	if (argc == 1)
+	{
+		if (!strcmp("off", argv[0]))
+		{
+			delay_off();
+		}
+		else if (!strcmp("on", argv[0]))
+		{
+			delay_on();
+		}
+		else
+		{
+			chprintf(chp, "picu\n");
+		}
+	}
+	else if (argc == 2)
+	{
+		temp = atoi(argv[1]);
+		if (!strcmp(argv[0], "volume"))
+		{
+			delay_volume(temp);
+		}
+		else if (!strcmp(argv[0], "time"))
+		{
+			delay_time(temp);
+		}
+		else
+		{
+			chprintf(chp, "picu\n");
+		}
+	}
+}
+#endif
 
 const ShellCommand commands[] =
 {
 { "mem", cmd_mem },
 { "threads", cmd_threads },
 { "test", cmd_test },
-{ "dezo", cmd_dezo },
-{ "clear", cmd_clear },
-{ "harm", cmd_harmonist },
-{ NULL, NULL } };
+#ifdef TFT_SHELL
+		{	"dezo", cmd_dezo},
+		{	"clear", cmd_clear},
+#endif
+#ifdef I2C_HARMONIST_SHELL
+		{	"harm", cmd_harmonist},
+#endif
+#ifdef DELAY_SHELL
+		{ "delay", cmd_delay },
+#endif
+		{ NULL, NULL } };
 

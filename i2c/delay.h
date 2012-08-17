@@ -38,24 +38,26 @@ extern "C"
 /*
  * DALAS registers
  */
-#define DAL_POT0 0b10101001
-#define DAL_POT1 0b10101010
+#define DAL_POTTIME 0b10101001
+#define DAL_POTVOLUME 0b10101010
 #define DAL_POT_BOTH 0b10101111
 
 /* Exported macro ------------------------------------------------------------*/
 #define delay_on() _delay_onOff(0)
 #define delay_off() _delay_onOff(1)
 
-#define delay_volume(x) _delay_dalas(DAL_POT0,x)
-#define delay_time(x) _delay_dalas(DAL_POT1,x)
+#define delay_volume(x) _delay_dalas(DAL_POTVOLUME,x)
+#define delay_time(x) _delay_dalas(DAL_POTTIME,x)
 
 /* Exported functions --------------------------------------------------------*/
 #ifdef I2C_DD3
 void _delay_onOff (uint8_t data);
 void _delay_dalas(uint8_t channel, uint8_t value);
+bool_t delay_get(void);
 #else
 #define _delay_onOff(d) NULL
 #define _delay_dalas(d,value) NULL
+#define delay_get() 0
 #endif
 
 #ifdef __cplusplus

@@ -38,7 +38,12 @@
 //#define I2C_HARMONIST
 //#define I2C_FOOTSWITCH
 
+//#define I2C_HARMONIST_SHELL
+#define DELAY_SHELL
+
 //#define I2C_TEST
+
+//#define TFT_SHELL
 
 /*
  * HAL driver system settings.

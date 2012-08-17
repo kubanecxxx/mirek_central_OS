@@ -64,6 +64,7 @@ void i2c_test(void)
 
 static void i2c_test_thread(void * data)
 {
+#ifdef I2C_FOOTSWITCH
 	(void) data;
 
 	uint8_t i = 1;
@@ -129,6 +130,7 @@ static void i2c_test_thread(void * data)
 			break;
 		}
 	}
+#endif //I2C footswitch
 }
 #endif
 
