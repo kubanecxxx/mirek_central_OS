@@ -29,7 +29,8 @@
  * Board identifier.
  */
 #define BOARD_ST_STM32F4_DISCOVERY
-#define BOARD_NAME                  "STMicroelectronics STM32F4-Discovery"
+#include "hash.h"
+//#define BOARD_NAME                  "STMicroelectronics STM32F4-Discovery"
 
 /*
  * Board oscillators-related settings.
