@@ -1,0 +1,4 @@
+SERIAL = rs232
+
+INCDIR+= $(SERIAL)
+CSRC+= $(SERIAL)/rs232.c

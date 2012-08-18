@@ -75,6 +75,8 @@ include $(CHIBIOS)/test/test.mk
 include i2c/i2c_user.mk
 include usb/usb_user.mk
 include touch/touch.mk
+#include rfm12b/rfm.mk
+include rs232/serial.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/STM32F407xG.ld
@@ -135,7 +137,7 @@ ASMSRC = $(PORTASM)
 INCDIR += $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various $(I2C_USER_INC) \
-         $(USB_USER_INC) 
+         $(USB_USER_INC) port
 
 #
 # Project, sources and paths

@@ -4,3 +4,6 @@
 [submodule "fonts"]
 	path = fonts
 	url = git@github.com:kubanecxxx/fonts.git
+[submodule "rfm12b"]
+	path = rfm12b
+	url = git@github.com:kubanecxxx/rfm12b.git

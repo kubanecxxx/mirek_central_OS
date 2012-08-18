@@ -73,7 +73,7 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel);
 #define foot_init() NULL
 #define _foot_SetLeds(x,y) NULL
 #define foot_buttons_interrupt(a,b) NULL
-#define EXTERNAL_INTERRUPT_PCA 0, NULL
+#define EXTERNAL_INTERRUPT_PCA EXT_CH_MODE_DISABLED, NULL
 #endif
 
 #ifdef __cplusplus

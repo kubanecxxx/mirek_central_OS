@@ -31,6 +31,8 @@
 
 #include "i2c_user.h"
 #include "usb_user.h"
+//#include "rfm.h"
+#include "rs232.h"
 
 /*
  * external interrupt system config
@@ -97,17 +99,23 @@ int main(void)
 	palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
 	palSetPad(GPIOD, 12);
 
-	/*
-	 * start external interrupt system
-	 */
-	extStart(&EXTD1, &extcfg);
-
 	/**
 	 * @brief init I2C1, make i2c1 thread
 	 */
 #ifdef I2C_MODULE
 	i2c1_init();
 #endif
+
+	/*
+	 * start external interrupt system
+	 */
+	extStart(&EXTD1, &extcfg);
+
+	/*
+	 * start shell for RS232 - communication with marshall
+	 */
+	serial_init();
+
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
 	 * sleeping in a loop and check the button state.

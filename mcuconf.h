@@ -32,18 +32,21 @@
  * 0...3        Lowest...Highest.
  */
 
-#define I2C_MODULE
+//#define I2C_MODULE
 
-#define I2C_DD3
+//#define I2C_DD3
 //#define I2C_HARMONIST
 //#define I2C_FOOTSWITCH
 
 //#define I2C_HARMONIST_SHELL
-#define DELAY_SHELL
+//#define DELAY_SHELL
 
 //#define I2C_TEST
 
+
 //#define TFT_SHELL
+
+//#define RFM_SHELL
 
 /*
  * HAL driver system settings.

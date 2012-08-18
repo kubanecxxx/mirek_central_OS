@@ -184,6 +184,21 @@ static void cmd_delay(BaseSequentialStream *chp, int argc, char *argv[])
 }
 #endif
 
+#ifdef RFM_SHELL
+static void cmd_rfm(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	chprintf(chp, "nirq\n");
+	rf_prepare();
+
+	rf_send(2);
+
+	//dummy
+	rf_send(0xAA);
+	rf_send(0xAA);
+	chprintf(chp, "jiz\n");
+}
+#endif
+
 const ShellCommand commands[] =
 {
 { "mem", cmd_mem },
@@ -197,7 +212,10 @@ const ShellCommand commands[] =
 		{	"harm", cmd_harmonist},
 #endif
 #ifdef DELAY_SHELL
-		{ "delay", cmd_delay },
+		{	"delay", cmd_delay},
+#endif
+#ifdef RFM_SHELL
+		{ "rfm", cmd_rfm },
 #endif
 		{ NULL, NULL } };
 
