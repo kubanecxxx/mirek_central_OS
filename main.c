@@ -31,7 +31,6 @@
 
 #include "i2c_user.h"
 #include "usb_user.h"
-//#include "rfm.h"
 #include "rs232.h"
 
 /*
@@ -115,7 +114,6 @@ int main(void)
 	 * start shell for RS232 - communication with marshall
 	 */
 	serial_init();
-
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
 	 * sleeping in a loop and check the button state.
