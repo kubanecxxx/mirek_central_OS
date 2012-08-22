@@ -32,6 +32,7 @@
 #include "i2c_user.h"
 #include "usb_user.h"
 #include "rs232.h"
+#include "switch_lld.h"
 
 /*
  * external interrupt system config
@@ -80,6 +81,11 @@ int main(void)
 	chSysInit();
 
 	/*
+	 * start shell for RS232 - communication with marshall
+	 */
+	serial_init();
+
+	/*
 	 * Activates the USB driver and then the USB bus pull-up on D+.
 	 */
 	usb_user_init();
@@ -105,15 +111,16 @@ int main(void)
 	i2c1_init();
 #endif
 
+	/**
+	 * @brief init gpio for relay switching
+	 */
+	switch_init();
+
 	/*
 	 * start external interrupt system
 	 */
 	extStart(&EXTD1, &extcfg);
 
-	/*
-	 * start shell for RS232 - communication with marshall
-	 */
-	serial_init();
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
 	 * sleeping in a loop and check the button state.

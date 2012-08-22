@@ -9,8 +9,6 @@
 #include "ch.h"
 #include "hal.h"
 #include "i2c_user.h"
-#include "harmonist.h"
-#include "delay.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -45,7 +43,8 @@ void i2c1_init(void)
 
 	/*
 	 * fill DAC with default values and PCA setup
-	 */harm_init();
+	 */
+	harm_init();
 	/*
 	 * setup footswitch PCAs
 	 */

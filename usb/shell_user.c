@@ -113,30 +113,27 @@ static void cmd_clear(BaseSequentialStream *chp, int argc, char *argv[])
 #ifdef I2C_HARMONIST_SHELL
 static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	uint8_t txbuf[3];
-	uint8_t msg;
-	//cvak dolu
 	if (argc == 0)
 	{
-		txbuf[0] = 1;
-		txbuf[1] = 0;
-
-		i2cAcquireBus(&I2CD1);
-		msg = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
-				TIME_INFINITE );
-		i2cReleaseBus(&I2CD1);
-
-		chThdSleepMilliseconds(20);
-
-		txbuf[1] |= _BV(1);
-		i2cAcquireBus(&I2CD1);
-		msg = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
-				TIME_INFINITE );
-		i2cReleaseBus(&I2CD1);
+		//turn off/on harmonizer
+		harm_toggle();
 	}
 	else if (argc == 2)
 	{
-		set_harmonist(atoi(argv[0]), atoi(argv[1]));
+		uint16_t temp = atoi(argv[1]);
+		if (!strcmp(argv[0], "volume"))
+			harm_volumeR(temp, chprintf(chp,"volume picu"));
+
+		else if (!strcmp(argv[0], "key"))
+			harm_keyR(temp, chprintf(chp,"key picu"));
+
+		else if (!strcmp(argv[0], "harmony"))
+			harm_harmonyR(temp, chprintf(chp,"harmony picu"));
+
+		else if (!strcmp(argv[0], "mode"))
+			harm_modeR(temp, chprintf(chp,"mode picu"));
+		else
+			chprintf(chp, "zase nic");
 	}
 	else
 	{
@@ -181,21 +178,27 @@ static void cmd_delay(BaseSequentialStream *chp, int argc, char *argv[])
 			chprintf(chp, "picu\n");
 		}
 	}
+	else
+		chprintf(chp, "malo argumentu");
 }
 #endif
 
-#ifdef RFM_SHELL
-static void cmd_rfm(BaseSequentialStream *chp, int argc, char *argv[])
+#ifdef RELAY_SHELL
+static void cmd_relay(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	chprintf(chp, "nirq\n");
-	rf_prepare();
+	if (argc != 2)
+	{
+		chprintf(chp, "dva argumenty, jeden ketry rele, druhej 0/1 - zap/vyp");
+		return;
+	}
 
-	rf_send(2);
+	uint8_t eff = atoi(argv[0]);
+	bool_t state = atoi(argv[1]);
 
-	//dummy
-	rf_send(0xAA);
-	rf_send(0xAA);
-	chprintf(chp, "jiz\n");
+	if (state == TRUE)
+		switch_setRelay(eff);
+	else
+		switch_clearRelay(eff);
 }
 #endif
 
@@ -209,13 +212,13 @@ const ShellCommand commands[] =
 		{	"clear", cmd_clear},
 #endif
 #ifdef I2C_HARMONIST_SHELL
-		{	"harm", cmd_harmonist},
+		{ "harm", cmd_harmonist },
 #endif
 #ifdef DELAY_SHELL
-		{	"delay", cmd_delay},
+		{ "delay", cmd_delay },
 #endif
-#ifdef RFM_SHELL
-		{ "rfm", cmd_rfm },
+#ifdef RELAY_SHELL
+		{ "relay", cmd_relay },
 #endif
 		{ NULL, NULL } };
 

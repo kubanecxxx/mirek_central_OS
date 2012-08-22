@@ -21,7 +21,7 @@ extern "C"
 /*
  * I2C address set for delay DD3 - PCA9530 + DS18030
  */
-#define DELAY_PCA 0b1100000 //Harmnoist PCA 7-bit address
+#define DELAY_PCA 0b1100001 //Harmnoist PCA 7-bit address
 #define DELAY_DAL 0b0101000 //DAC 7-bit address MCP4728
 /*
  * PCA registers

@@ -1,35 +1,45 @@
 /**
- * @file i2c_user.h
+ * @file switch_lld.h
  * @author kubanec
- * @date 9.8.2012
+ * @date 22.8.2012
  *
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef I2C_USER_H_
-#define I2C_USER_H_
+#ifndef SWITCH_LLD_H_
+#define SWITCH_LLD_H_
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
+/*
+ * REL 1-14 outputs
+ * REL 1-7 used relays
+ * REL 15 16 18 20 - optocouplers
+ */
+
 /* Includes ------------------------------------------------------------------*/
-#include "footswitch.h"
-#include "harmonist.h"
-#include "delay.h"
+
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-#define _BV(x) (1<<x)
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-void i2c1_init(void);
-#ifdef I2C_TEST
-void i2c_test(void);
+bool_t switch_getRelay(uint8_t relay);
+void switch_clearRelay(uint8_t relay);
+void switch_setRelay(uint8_t relay);
+void switch_setRelays(uint32_t relays);
+uint32_t switch_getRelays(void);
+void switch_init(void);
+
+#ifdef SWITCHING_DEMO
+
+#else
+
 #endif
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* I2C_USER_H_ */
+#endif /* SWITCH_LLD_H_ */

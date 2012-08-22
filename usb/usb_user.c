@@ -284,7 +284,13 @@ static void usb_event(USBDriver *usbp, usbevent_t event)
 extern const ShellCommand commands[];
 
 const ShellConfig shell_cfg1 =
-{ (BaseSequentialStream *) &SDU1, commands };
+{
+#ifdef RS232_SHELL
+		(BaseSequentialStream *) &SD2,
+#else
+		(BaseSequentialStream *) &SDU1,
+#endif
+		commands };
 
 #define SHELL_WA_SIZE   THD_WA_SIZE(2048)
 static WORKING_AREA(wa_usb_user,256);
@@ -314,7 +320,12 @@ static void usb_user_thread(void * nic)
 
 void usb_user_init(void)
 {
+#ifdef RS232_SHELL
+	Thread *shelltp = NULL;
+	shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+#else
 	usbDisconnectBus(serusbcfg.usbp);
 	chThdCreateStatic(&wa_usb_user, sizeof(wa_usb_user), LOWPRIO,
 			usb_user_thread, NULL );
+#endif
 }

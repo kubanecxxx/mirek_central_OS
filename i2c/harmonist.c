@@ -9,7 +9,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "harmonist.h"
-#include "i2c_user.h"
+
 #include "footswitch.h"
 
 //@todo přihodit vlákno na kontrolu zapnutí nebo vypnutí podle nastavení někde v paměti
@@ -18,6 +18,11 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+#ifdef I2C_HARMONIST
+static WORKING_AREA(wa_harmonizer,256);
+#endif
+bool_t _harm_enabled;
+
 const harmonizer_t HARMONIZER =
 {
 /*
@@ -40,18 +45,58 @@ const harmonizer_t HARMONIZER =
 		DAC_VOLTAGE(2.436), DAC_VOLTAGE(2.765), DAC_VOLTAGE(3.132),
 		DAC_VOLTAGE(3.228) } };
 /* Private function prototypes -----------------------------------------------*/
-static void dac_write(DAC_channel channel, uint16_t voltage);
-
+static void harm_thread(void * data); //todo noreturn
 /* Private functions ---------------------------------------------------------*/
+
+#ifdef I2C_HARMONIST
+/**
+ * @brief thread for watching harmozier status
+ */
+static void harm_thread(void * data)
+{
+	(void) data;
+	uint8_t inputs;
+
+	while (TRUE)
+	{
+		inputs = harm_getInputs();
+
+		//if odněkud jesli má byt zapnuto nebo vypnuto + co řiká ledka + mód
+		//todo broadcast pokud se zmačklo tlačitko
+
+		if ((_harm_enabled && !harm_getInput_LED(inputs))|| (!_harm_enabled && harm_getInput_LED(inputs)) )
+
+{		harm_pushButton(inputs);
+		chThdSleepMilliseconds(20);
+		harm_releaseButton(inputs);
+	}
+		chThdSleepMilliseconds(100);
+	}
+}
+
+/*
+ * @brief set PCA output
+ */
+void _harm_SetOutputs(uint8_t data)
+{
+	uint8_t txbuf[2];
+
+	txbuf[0] = PCA_ODR;
+	txbuf[1] = data;
+
+	i2cAcquireBus(&I2CD1);
+	i2cMasterTransmit(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0);
+	i2cReleaseBus(&I2CD1);
+}
 
 /**
  * @brief write harmonist DAC value
  */
-#ifdef I2C_HARMONIST
-static void dac_write(DAC_channel channel, uint16_t voltage)
+void _dac_write(DAC_channel channel, uint16_t voltage)
 {
 	uint8_t txbuf[3];
 	uint8_t err;
+	uint8_t inputs = harm_getInputs();
 
 	txbuf[0] = 0b01011000 | ((channel & 0b11) << 1);
 	txbuf[1] = (voltage >> 8) & 0xF;
@@ -60,11 +105,28 @@ static void dac_write(DAC_channel channel, uint16_t voltage)
 	i2cAcquireBus(&I2CD1);
 	err = i2cMasterTransmitTimeout(&I2CD1, DACAN, txbuf, 3, NULL, 0,
 			TIME_INFINITE );
-	txbuf[0] = 1;
-	txbuf[1] = _BV(HARM_EFF) | _BV(HARM_LDAC);
-	err = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
-			TIME_INFINITE );
 	i2cReleaseBus(&I2CD1);
+
+	harm_setLDAC(inputs);
+	//todo zjistit jesli de acquire stejnym vláknem
+}
+
+/**
+ * @brief get PCA expander inputs
+ * @return IDR of PCA in harmonizer
+ */
+uint8_t harm_getInputs(void)
+{
+	uint8_t txbuf[2];
+	uint8_t rxbuf[2];
+
+	txbuf[0] = PCA_IDR;
+
+	i2cAcquireBus(&I2CD1);
+	i2cMasterTransmit(&I2CD1, HARM_PCA, txbuf, 1, rxbuf, 2);
+	i2cReleaseBus(&I2CD1);
+
+	return (rxbuf[0] & 0x0F);
 }
 
 /**
@@ -75,17 +137,21 @@ void harm_init(void)
 	uint8_t txbuf[5];
 	uint8_t err;
 
-	dac_write(CHAN_HARM, HARMONIZER.HARMONY.a[0]);
-	dac_write(CHAN_KEY, HARMONIZER.KEY.s.A);
-	dac_write(CHAN_MODE, HARMONIZER.MODE.s.MAJOR);
+	/*
+	 * DAC has own eeprom - memorize last state itself
+	 harm_harmony(HARMONIZER.HARMONY.a[0]);
+	 harm_key(HARMONIZER.KEY.s.A);
+	 harm_mode(HARMONIZER.MODE.s.MAJOR);
+	 harm_volume(1000);
+	 */
 
 	//config PCA Harmonist direction
 	txbuf[0] = PCA_DDR;
 	txbuf[1] = 0;
 	//inputs
 	txbuf[1] = _BV(HARM_BUT) | _BV(HARM_LED);
-	//outputs
-	//txbuf[1] = _BV(HARM_EFF) | _BV(HARM_LDAC);
+//outputs
+//txbuf[1] = _BV(HARM_EFF) | _BV(HARM_LDAC);
 	i2cAcquireBus(&I2CD1);
 	err = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
 			TIME_INFINITE );
@@ -95,41 +161,42 @@ void harm_init(void)
 	err = i2cMasterTransmitTimeout(&I2CD1, HARM_PCA, txbuf, 2, NULL, 0,
 			TIME_INFINITE );
 	i2cReleaseBus(&I2CD1);
+
+	chThdCreateStatic(&wa_harmonizer, sizeof(wa_harmonizer), NORMALPRIO,
+			(tfunc_t) harm_thread, NULL );
 }
 
 /**
  * @brief test function from shell, set voltage accords channel
  */
-void set_harmonist(uint8_t channel, uint8_t index)
-{
-	switch (channel)
-	{
-	//MODE
-	case 0:
-		if (index < HARM_MODE_COUNT)
-		{
-			dac_write(CHAN_MODE, HARMONIZER.MODE.a[index]);
-		}
-		break;
+/*
+ void harm_set(uint8_t channel, uint16_t index)
+ {
+ switch (channel)
+ {
+ //MODE
+ case 0:
+ harm_mode(index);
+ break;
 
-		//KEY
-	case 1:
-		if (index < HARM_KEY_COUNT)
-		{
-			dac_write(CHAN_KEY, HARMONIZER.KEY.a[index]);
-		}
-		break;
+ //KEY
+ case 1:
+ harm_key(index);
+ break;
 
-		//HARMONY
-	case 2:
-		if (index < HARM_SHIFT_COUNT)
-		{
-			dac_write(CHAN_HARM, HARMONIZER.HARMONY.a[index]);
-		}
-		break;
+ //HARMONY
+ case 2:
+ harm_harmony(index);
+ break;
 
-	default:
-		break;
-	}
-}
+ //VOLUME
+ case 3:
+ harm_volume(index);
+ break;
+
+ default:
+ break;
+ }
+ }
+ */
 #endif

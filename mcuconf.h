@@ -32,21 +32,32 @@
  * 0...3        Lowest...Highest.
  */
 
-//#define I2C_MODULE
 
-//#define I2C_DD3
-//#define I2C_HARMONIST
-//#define I2C_FOOTSWITCH
+/*
+ * I2C crap
+ */
+#define I2C_MODULE
 
-//#define I2C_HARMONIST_SHELL
-//#define DELAY_SHELL
+#define I2C_DD3
+#define I2C_HARMONIST
+#define I2C_FOOTSWITCH
+
+#define I2C_HARMONIST_SHELL
+#define DELAY_SHELL
 
 //#define I2C_TEST
 
-
+/*
+ * TFT crap
+ */
 //#define TFT_SHELL
 
-//#define RFM_SHELL
+/*
+ * GPIO switching crap
+ */
+//#define SWITCHING_DEMO
+#define RS232_SHELL
+#define RELAY_SHELL
 
 /*
  * HAL driver system settings.
