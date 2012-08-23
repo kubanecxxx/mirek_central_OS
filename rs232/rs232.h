@@ -20,18 +20,46 @@ extern "C"
 extern BaseSequentialStream * marshall;
 /* Exported macro ------------------------------------------------------------*/
 /**
- * gain and volume, channels are 1,2,3,4
+ * @brief výběr kanálu s gainem
+ * @ingroup RS232
+ * @param[in] číslo kanálu (1-4)
  */
 #define serial_gain(channel) chprintf(marshall,"gain %d",channel)
+/**
+ * @brief výběr kanálu s volume
+ * @ingroup RS232
+ * @param[in] číslo kanálu (1-4)
+ */
 #define serial_volume(channel) chprintf(marshall,"volume %d", channel)
-//mute
+/**
+ * @brief zamutuje maršála
+ * @ingroup RS232
+ */
 #define serial_mute() chprintf(marshall,"mute on")
+/**
+ * @brief odmutuje maršála
+ * @ingroup RS232
+ */
 #define serial_unmute() chprintf(marshall,"mute off")
-//channel
+/**
+ * @brief nastaví vstup low sens
+ * @ingroup RS232
+ */
 #define serial_channelLow() chprintf(marshall,"channel low")
+/**
+ * @brief nastaví vstup high sens
+ * @ingroup RS232
+ */
 #define serial_channelHigh() chprintf(marshall,"channel high")
-//effect loop
+/**
+ * @brief Zapne efektovou smyčku
+ * @ingroup RS232
+ */
 #define serial_loopOn() chrpintf(marshall,"loop on")
+/**
+ * @brief Vypne efektovou smyčku (true bypass)
+ * @ingroup RS232
+ */
 #define serial_loopBypass() chprintf(marshall,"loop off")
 /* Exported functions --------------------------------------------------------*/
 void serial_init(void);

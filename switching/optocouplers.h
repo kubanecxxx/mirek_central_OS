@@ -13,6 +13,12 @@ extern "C"
 {
 #endif
 
+/**
+ * @defgroup Optočleny
+ * @ingroup Switching
+ * @brief API pro ovládání efektů s optočlenama
+ */
+
 /********************************************************************
  * Includes
  ********************************************************************/
@@ -20,39 +26,63 @@ extern "C"
 /********************************************************************
  * Exported typedef
  ********************************************************************/
+/**
+ * @brief není využito, používám jenom .b
+ * @ingroup Optočleny
+ */
 typedef union
 {
-	struct
-	{
-		bool_t overdrive :1;
-		bool_t tuner :1;
-	} s;
 	uint8_t b;
 } opto_bitStruct_t;
 /********************************************************************
  * Exported global variables
  ********************************************************************/
+/**
+ * @brief interní proměnná pro nastavení stavu efektů
+ * @note externí jenom kvůli makrům
+ * @ingroup Optočleny
+ * @notapi
+ */
 extern opto_bitStruct_t _opto_states;
 
 /********************************************************************
  * Exported macros
  ********************************************************************/
+/**
+ * @brief Nastavení efektů (portů) podle bitové masky
+ * @ingroup Optočleny
+ * @param[in] bitmask bitová maska
+ */
 #define opto_setEffects(bitmask)		 _opto_states.b = bitmask
+/**
+ * @brief Čtení stavu efektů z pinů
+ * @ingroup Optočleny
+ */
 #define opto_getEffects()				(_opto_states.b)
+/**
+ * @brief Přečte jeden efekt podle čísla
+ * @ingroup Optočleny
+ * @param[in] number číslo efektu s optočlenama
+ */
 #define opto_getEffect(number)			((opto_getEffects() >> number) & 1)
+/**
+ * @brief Zapne jeden efekt
+ * @ingroup Optočleny
+ * @param[in] number číslo efektu
+ */
 #define opto_enableEffect(number)		opto_setEffects(opto_getEffects() | (1<<number))
+/**
+ * @brief Vypne jeden efekt
+ * @ingroup Optočleny
+ * @param[in] number číslo efektu
+ */
 #define opto_disableEffect(number)		opto_setEffects(opto_getEffects() & (~(1<<number)))
-#define opto_setEffect(number, state)	state == TRUE ? opto_enableEffect(number) : opto_disableEffect(number)
-
-#define opto_disableOverdrive()			_opto_states.s.overdrive = FALSE;
-#define opto_enableOverdrive() 			_opto_states.s.overdrive = TRUE;
-#define opto_toggleOverdrive() 			_opto_states.s.overdrive = !_opto_states.s.overdrive;
-#define opto_getOverdrive() 			(_opto_states.s.overdrive)
-
-#define opto_disableTuner()				_opto_states.s.tuner = FALSE;
-#define opto_enableTuner() 				_opto_states.s.tuner = TRUE;
-#define opto_toggleTuner() 				_opto_states.s.tuner = !_opto_states.s.tuner;
-#define opto_getTuner() 				(_opto_states.s.tuner)
+/**
+ * @brief Přepne jeden efekt
+ * @ingroup Optočleny
+ * @param[in] number číslo efektu
+ */
+#define opto_toggleEffect(number)		opto_setEffects(opto_getEffects() ^ (1<<number))
 
 /********************************************************************
  * Exported functions

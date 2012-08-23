@@ -14,6 +14,17 @@ extern "C"
 {
 #endif
 
+/**
+ * @defgroup Delay
+ * @ingroup I2C
+ * @brief API pro nastavení delay DD3
+ */
+
+/**
+ * @addtogroup Delay
+ * @{
+ */
+
 /* Includes ------------------------------------------------------------------*/
 
 /* Exported types ------------------------------------------------------------*/
@@ -21,11 +32,14 @@ extern "C"
 /*
  * I2C address set for delay DD3 - PCA9530 + DS18030
  */
+///@brief I2C adresa PCA v delay
 #define DELAY_PCA 0b1100001 //Harmnoist PCA 7-bit address
+///@brief I2C adresa Dalas potenciometru
 #define DELAY_DAL 0b0101000 //DAC 7-bit address MCP4728
 /*
  * PCA registers
  */
+///@brief PCA input data registr
 #define PCA_INPUT_REG 0
 #define PCA_PSC0 1
 #define PCA_PWM0 2
@@ -33,21 +47,35 @@ extern "C"
 #define PCA_PWM1 4
 #define PCA_LS0  5
 
+///@brief PCA auto address increment flag
 #define PCA_INCREMENT 0b00010000
 
 /*
  * DALAS registers
  */
+///@brief registr potenciometru na delay time
 #define DAL_POTTIME 0b10101001
+///@brief registr potenciomteru na volume
 #define DAL_POTVOLUME 0b10101010
+///@brief registr obou potenciometrů zajednou
 #define DAL_POT_BOTH 0b10101111
 
 /* Exported macro ------------------------------------------------------------*/
+///@brief zapnout delay
 #define delay_on() _delay_onOff(0)
+///@brief vypnout delay
 #define delay_off() _delay_onOff(1)
+///@brief přepnout delay
+#define delay_toggle() _delay_onOff(!delay_get())
 
+///@brief nastavit delay_volume
 #define delay_volume(x) _delay_dalas(DAL_POTVOLUME,x)
+///@brief nastavit delay time
 #define delay_time(x) _delay_dalas(DAL_POTTIME,x)
+
+/**
+ * @}
+ */
 
 /* Exported functions --------------------------------------------------------*/
 #ifdef I2C_DD3

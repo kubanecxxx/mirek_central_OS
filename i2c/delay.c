@@ -17,9 +17,16 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
+/**
+ * @addtogroup Delay
+ * @{
+ */
+
 #ifdef I2C_DD3
 /**
  * @brief turn delay on/off - internal function shouldn't be used by user
+ * @notapi
+ * @param data 0/1
  */
 void _delay_onOff(uint8_t data)
 {
@@ -32,6 +39,9 @@ void _delay_onOff(uint8_t data)
 	i2cReleaseBus(&I2CD1);
 }
 
+/**
+ * @brief vyčte jesli je DD3 zapnuty nebo vypnuty
+ */
 bool_t delay_get(void)
 {
 	uint8_t txbuf[2];
@@ -49,6 +59,12 @@ bool_t delay_get(void)
 		return FALSE;
 }
 
+/**
+ * @brief nastaví poťák
+ * @notapi
+ * @param[in] kterej poťák
+ * @param[in] nastavení jezdce potenciometru
+ */
 void _delay_dalas(uint8_t channel, uint8_t value)
 {
 	uint8_t txbuf[2];
@@ -73,5 +89,9 @@ void _delay_dalas(uint8_t channel, uint8_t value)
 		delay_on();
 	}
 }
+
+/**
+ * @}
+ */
 
 #endif

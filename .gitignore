@@ -2,3 +2,4 @@ board/hash.h
 board/a.out
 build
 .dep
+doc

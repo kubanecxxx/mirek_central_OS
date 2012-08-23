@@ -10,6 +10,18 @@
 #include "hal.h"
 #include "switch_lld.h"
 /* Private typedef -----------------------------------------------------------*/
+
+/**
+ * @defgroup Relays
+ * @brief API pro prácu s efektama s relé
+ * @ingroup Switching
+ */
+
+/**
+ * @notapi
+ * @brief Pár gpio + pin
+ * @ingroup Relays
+ */
 typedef struct
 {
 	GPIO_TypeDef * gpio;
@@ -17,10 +29,18 @@ typedef struct
 } switch_relay;
 
 /* Private define ------------------------------------------------------------*/
+/**
+ * @brief Počet relé
+ * @ingroup Relays
+ */
 #define RELAY_COUNT 15
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
+/**
+ * @brief tabulka GPIO+pinů všech relé
+ * @ingroup Relays
+ */
 static const switch_relay relays[RELAY_COUNT] =
 {
 { GPIOB, 1 }, //REL1
@@ -44,12 +64,36 @@ static const switch_relay relays[RELAY_COUNT] =
 		{ GPIOC, 3 }, //REL15
 		};
 
+/**
+ * @notapi
+ * @ingroup Relays
+ */
 #define _switch_setRelay(rel)  palSetPad(relays[rel].gpio, relays[rel].pin)
+/**
+ * @notapi
+ * @ingroup Relays
+ */
+#define _switch_toggleRelay(rel)  palTogglePad(relays[rel].gpio, relays[rel].pin)
+/**
+ * @notapi
+ * @ingroup Relays
+ */
 #define _switch_clearRelay(relay) palClearPad(relays[relay].gpio, relays[relay].pin)
+/**
+ * @notapi
+ * @ingroup Relays
+ */
 #define _switch_getRelay(relay) palReadPad(relays[relay].gpio, relays[relay].pin)
 /* Private function prototypes -----------------------------------------------*/
+#ifdef SWITCHING_TEST
+static void switch_demo(void);
+#endif
 /* Private functions ---------------------------------------------------------*/
 
+/**
+ * @brief inicializuje GPIO pro ovládání relé
+ * @ingroup Relays
+ */
 void switch_init(void)
 {
 	uint8_t i = 0;
@@ -61,9 +105,13 @@ void switch_init(void)
 #ifdef SWITCHING_TEST
 	switch_demo();
 #endif
-
 }
 
+/**
+ * @brief přečte stav všech relátek z pinů
+ * @ingroup Relays
+ * @return bitmask
+ */
 uint32_t switch_getRelays(void)
 {
 	uint8_t i;
@@ -78,6 +126,11 @@ uint32_t switch_getRelays(void)
 	return temp;
 }
 
+/**
+ * @brief nastaví stav všech relátek
+ * @ingroup Relays
+ * @param[in] bitmask
+ */
 void switch_setRelays(uint32_t _relays)
 {
 	uint8_t i;
@@ -91,6 +144,11 @@ void switch_setRelays(uint32_t _relays)
 	}
 }
 
+/**
+ * @brief zapne jedno relé
+ * @ingroup Relays
+ * @param[in] číslo relé
+ */
 void switch_setRelay(uint8_t relay)
 {
 	if (relay < RELAY_COUNT)
@@ -99,6 +157,11 @@ void switch_setRelay(uint8_t relay)
 	}
 }
 
+/**
+ * @brief vypne jedno relé
+ * @ingroup Relays
+ * @param[in] číslo relé
+ */
 void switch_clearRelay(uint8_t relay)
 {
 	if (relay < RELAY_COUNT)
@@ -107,6 +170,24 @@ void switch_clearRelay(uint8_t relay)
 	}
 }
 
+/**
+ * @brief přepne jedno relé
+ * @ingroup Relays
+ * @param[in] číslo relé
+ */
+void switch_toggleRelay(uint8_t relay)
+{
+	if (relay < RELAY_COUNT)
+	{
+		_switch_toggleRelay(relay);
+	}
+}
+
+/**
+ * @brief přečte stav jednoho relé
+ * @ingroup Relays
+ * @return boolean
+ */
 bool_t switch_getRelay(uint8_t relay)
 {
 	if (relay < RELAY_COUNT)
@@ -118,7 +199,12 @@ bool_t switch_getRelay(uint8_t relay)
 }
 
 #ifdef SWITCHING_DEMO
-void switch_demo(void)
+/**
+ * @brief demo ktery postupně problinke jedno réle po druhym
+ * @ingroup Relays
+ * @notapi
+ */
+static void switch_demo(void)
 {
 	uint8_t i;
 	switch_setRelays(0);

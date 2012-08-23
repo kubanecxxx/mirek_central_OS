@@ -9,6 +9,11 @@
 
 #include "footswitch.h"
 
+/**
+ * @addtogroup FOOTSWITCH
+ * @{
+ */
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define EVENT_ID 1
@@ -213,4 +218,8 @@ void _foot_SetLeds(uint8_t address, uint8_t data)
 	i2cMasterTransmit(&I2CD1, address, txbuf, 2, NULL, 0);
 	i2cReleaseBus(&I2CD1);
 }
+
+/**
+ * @}
+ */
 #endif

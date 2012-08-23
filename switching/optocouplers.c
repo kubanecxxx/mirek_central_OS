@@ -15,27 +15,44 @@
 /********************************************************************
  * Private typedefs
  ********************************************************************/
+/**
+ * @brief pár GPIO + pin
+ * @ingroup Optočleny
+ * @notapi
+ */
 typedef struct
 {
 	GPIO_TypeDef * gpio;
 	uint16_t pin;
 } opto_gpio_t;
 
+/**
+ * @brief dvojce pinů pro optočleny
+ * @ingroup Optočleny
+ * @notapi
+ */
 typedef struct
 {
+	///Nastavení efektu optočlenem (emulace sešlápnutí tlačítka)
 	opto_gpio_t led;
+	///čtení stavu efektu podle jeho ledky
 	opto_gpio_t drain;
 } opto_both_t;
 
+/**
+ * @brief počet efektů z optočlenama
+ * @ingroup Optočleny
+ */
+#define OPTO_COUNT 2
+
+/**
+ * @brief sada několika efektů
+ * @ingroup Optočleny
+ * @notapi
+ */
 typedef union
 {
-	struct
-	{
-		opto_both_t overdrive;
-		opto_both_t tuner;
-	} s;
-
-	opto_both_t a[2];
+	opto_both_t a[OPTO_COUNT];
 } opto_effects_t;
 
 /********************************************************************
@@ -45,48 +62,58 @@ opto_bitStruct_t _opto_states;
 /********************************************************************
  * Private global variables
  ********************************************************************/
-#define OPTO_THREAD
-#ifdef OPTO_THREAD
+/**
+ * @brief work area pro vlákno na hlidání stavu
+ * @ingroup Optočleny
+ * @notapi
+ */
 static WORKING_AREA(wa_opto,256);
-#endif
 
 /********************************************************************
  * Private constants
  ********************************************************************/
-//todo doplnit tabulku podle schematu
+/**
+ * @brief tabulka optočlenů
+ * @ingroup Optočleny
+ * @notapi
+ */
 static const opto_effects_t opto_effects =
-{ GPIOA, 3, GPIOB, 3, GPIOA, 2, GPIOB, 1 };
+{ GPIOC, 2, GPIOC, 4, GPIOC, 1, GPIOC, 5 };
 
 /********************************************************************
  * Private function prototypes
  ********************************************************************/
-#ifdef OPTO_THREAD
 static void opto_thread(void * data); //todo noreturn
-#endif
 
 /********************************************************************
  * Private functions
  ********************************************************************/
+/**
+ * @brief init GPIO pro ovládání optočlenů + vytvoření vlákna
+ * @ingroup Optočleny
+ */
 void opto_init(void)
 {
 	uint8_t i;
 
-	for (i = 0; i < 2; i++)
+	for (i = 0; i < OPTO_COUNT; i++)
 	{
 		palSetPadMode(opto_effects.a[i].led.gpio, opto_effects.a[i].led.pin,
 				PAL_MODE_OUTPUT_PUSHPULL);
 		palSetPadMode(opto_effects.a[i].drain.gpio, opto_effects.a[i].drain.pin,
-				PAL_MODE_INPUT);
+				PAL_MODE_INPUT_PULLUP);
+
+		palClearPad(opto_effects.a[i].led.gpio, opto_effects.a[i].led.pin);
 	}
-#ifdef OPTO_THREAD
+
 	chThdCreateStatic(&wa_opto, sizeof(wa_opto), NORMALPRIO,
 			(tfunc_t) opto_thread, NULL );
-#endif
 }
 
-#ifdef OPTO_THREAD
 /**
  * @brief vlákno ktery hlidá jesli je efekt zapnuté jestli má
+ * @ingroup Optočleny
+ * @notapi
  */
 static void opto_thread(void * data)
 {
@@ -96,23 +123,21 @@ static void opto_thread(void * data)
 
 	while (TRUE)
 	{
-//todo možná bych sem dal wait event na přerušeni od ledek nebo
-//rovnou cely v externim přerušení + virtual timer
-
-		for (i = 0; i < 2; i++)
+		for (i = 0; i < OPTO_COUNT; i++)
 		{
 			temp =
-					palReadPad(opto_effects.a[i].drain.gpio,opto_effects.a[i].drain.pin);
+					!palReadPad(opto_effects.a[i].drain.gpio,opto_effects.a[i].drain.pin);
 
 			if (temp != opto_getEffect(i))
 			{
-				palClearPad(opto_effects.a[i].led.gpio,
-						opto_effects.a[i].led.pin);
-				chThdSleepMilliseconds(20);
 				palSetPad(opto_effects.a[i].led.gpio,
+						opto_effects.a[i].led.pin);
+				chThdSleepMilliseconds(50);
+				palClearPad(opto_effects.a[i].led.gpio,
 						opto_effects.a[i].led.pin);
 			}
 		}
+		chThdSleepMilliseconds(100);
+		///@todo todo tady by šlo použit čekat  na event z externiho přerušeni...
 	}
 }
-#endif

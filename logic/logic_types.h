@@ -18,13 +18,21 @@
  ********************************************************************/
 
 /**
- * @defgroup LOGIC
+ * @defgroup Logika
  * @brief všechny datové typy použité při ukládání/rozhodování chování boardu
  */
 
 /**
- * @defroup vole
- * @brief Vyšší struktury logiky pro rozhodování
+ * @defgroup LOGIC_HL
+ * @ingroup Logika
+ * @brief high level datové typy v chování boardu
+ * @details Z těchto 4 struktur se poskládá jakykoliv nastavení
+ */
+
+/**
+ * @defgroup LOGIC
+ * @brief low level datové typy v chování boardu
+ * @ingroup LOGIC_HL
  */
 
 /**
@@ -148,6 +156,7 @@ typedef struct
 /**
  * @brief struktura pro nastavení ledek
  * @ingroup LOGIC
+ * @todo todo domyslet implementaci
  */
 typedef struct
 {
@@ -169,11 +178,9 @@ typedef struct
 	logic_leds_t leds;
 } logic_specific_t;
 
-
-
 /**
  * @brief nastavení kanálu
- * @ingroup HL_LOGIC
+ * @ingroup LOGIC_HL
  * @details kanál bude natvrdo nastavovat stavy efektů (nebude umět jenom přidat nebo jenom ubrat)
  *
  * používá: @ref logic_bit_t @ref logic_specific_t
@@ -186,18 +193,86 @@ typedef struct
 	logic_specific_t * special;
 } logic_channel_t;
 
+/**
+ * @brief nastavení funkce
+ * @details funkce bude umět to co kanál +
+ * efekty přidávat a ubirat, proto je potřeba použit @ref logic_dibit_t +
+ * obsahuje podmínku v kterym se nachází kanálu
+ *
+ * používá: @ref logic_dibit_t @ref logic_specific_t
+ * @ingroup LOGIC_HL
+ *
+ */
 typedef struct
 {
+	///jméno
 	const uint8_t * name;
-	//user data - harm setup, delay setup, led setup
+	///user data - harm setup, delay setup, led setup
 	logic_dibit_t effects;
 
-	//podminka předchozího kanálu
+	///podminka předchozího kanálu
 	uint8_t channelCondition;
 	logic_specific_t * special;
 
 } logic_function_t;
 
+/**
+ * @brief sada typů volání funkcí - použito v argumentu volání
+ * @ingroup LOGIC
+ */
+typedef enum
+{
+	callType_channel, callType_function, callType_remap
+} logic_callType_t;
+
+/**
+ * @brief argument volání
+ * @ingroup LOGIC
+ *
+ * @details potřeba zadávat typ @ref logic_callType_t,
+ * aby věděl které funkci má argument předat
+ * @todo todo promyslet virtual method table
+ */
+typedef struct
+{
+	logic_callType_t callType;
+	void * call;
+} logic_buttonCall_t;
+
+/**
+ * @brief nastavení tlačítka
+ * @details tato struktura se bude volat při zmáčknutí potřebného
+ * tlačítka několikrát (taky určeno ve struktuře)
+ * a podle ní se zavolají potřebné funkce s parametrama
+ * kanál,funkce,remap
+ *
+ * @ingroup LOGIC_HL
+ */
+typedef struct
+{
+	///jméno
+	const uint8_t * name;
+	///počet zmačknuti
+	uint8_t pushCount;
+	///čislo tlačitka
+	uint8_t number;
+	///počet argumentů volání
+	uint8_t buttonCallCount;
+	///sada pointrů
+	logic_buttonCall_t * calls;
+	///jesli se má reagovat na mačkání nebo jenom po dobu držení
+	bool_t pushHold;
+} logic_button_t;
+
+/**
+ * @brief přemapování volání tlačítek na jiné
+ * @ingroup LOGIC_HL
+ *
+ * @details
+ * určuje z kteryho tlačitka ktery volání se přemapuje
+ * a na ktery se přemapuje, proto je potřeba @ref logic_buttonCall_t
+ * +taky podmínka předchoziho kanálu
+ */
 typedef struct
 {
 	const uint8_t * name;
@@ -210,28 +285,18 @@ typedef struct
 	uint8_t channelCondition;
 } logic_remap_t;
 
-typedef enum
-{
-	callType_channel, callType_function, callType_remap
-} logic_callType_t;
-
+/**
+ * @brief celá banka
+ * @ingroup LOGIC_HL
+ *
+ * @details obsahuje sadu kanálů, funkcí, tlačitek a přemapování
+ * uživatel si muže nastavit na každou banku uplně něco jinyho
+ */
 typedef struct
 {
-	logic_callType_t callType;
-	void * call;
-} logic_buttonCall_t;
-
-typedef struct
-{
+	///jméno
 	const uint8_t * name;
-	uint8_t pushCount;
-	uint8_t number;
-	uint8_t buttonCallCount;
-	logic_buttonCall_t * calls;
-} logic_button_t;
 
-typedef struct
-{
 	uint16_t channelCount;
 	uint16_t functionCount;
 	uint16_t remapCount;
@@ -244,9 +309,18 @@ typedef struct
 	logic_button_t * buttons;
 } logic_bank_t;
 
+/**
+ * @brief sada bank
+ * @ingroup LOGIC_HL
+ *
+ * @details
+ * zarhnuje všechny banky + jejich počet
+ */
 typedef struct
 {
+	///počet bank
 	uint16_t bankCount;
+	///sada pointrů
 	logic_bank_t * banks;
 } logic_base_t;
 

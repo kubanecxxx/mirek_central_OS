@@ -15,6 +15,16 @@
 /********************************************************************
  * Private functions
  ********************************************************************/
+
+/**
+ * @defgroup Switching
+ * @brief API pro ovládání efektů přes relé nebo po optočlenech
+ */
+
+/**
+ * @brief init portů pro relé a optočleny
+ * @ingroup Switching
+ */
 void switch_masterGpioInit(void)
 {
 	switch_init();

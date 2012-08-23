@@ -1,4 +1,4 @@
 LOGIC = logic
 
 INCDIR += $(LOGIC) 
-#CSRC += $(LOGIC)/
+CSRC += $(LOGIC)/logic_use.c

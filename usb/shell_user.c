@@ -18,6 +18,7 @@
 #include "i2c_user.h"
 #include "harmonist.h"
 #include "delay.h"
+#include "switch_master.h"
 #include "string.h"
 
 /* Private typedef -----------------------------------------------------------*/
@@ -200,6 +201,23 @@ static void cmd_relay(BaseSequentialStream *chp, int argc, char *argv[])
 	else
 		switch_clearRelay(eff);
 }
+
+static void cmd_opto(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc != 2)
+	{
+		chprintf(chp, "dva argumenty, jeden ketry rele, druhej 0/1 - zap/vyp");
+		return;
+	}
+
+	uint8_t eff = atoi(argv[0]);
+	bool_t state = atoi(argv[1]);
+
+	if (state == TRUE)
+		opto_enableEffect(eff);
+	else
+		opto_disableEffect(eff);
+}
 #endif
 
 const ShellCommand commands[] =
@@ -219,6 +237,7 @@ const ShellCommand commands[] =
 #endif
 #ifdef RELAY_SHELL
 		{ "relay", cmd_relay },
+		{ "opto", cmd_opto },
 #endif
 		{ NULL, NULL } };
 

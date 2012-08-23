@@ -17,6 +17,18 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include "ch.h"
 #include "hal.h"
+
+/**
+ * @defgroup FOOTSWITCH
+ * @ingroup I2C
+ * @brief ovládání lišty s tlačitkama a ledkama po I2C - API
+ */
+
+/**
+ * @addtogroup FOOTSWITCH
+ * @{
+ */
+
 /* Exported types ------------------------------------------------------------*/
 typedef struct
 {
@@ -62,6 +74,10 @@ extern volatile foot_t foot_switch;
 #define foot_SetLedsYellow(data) _foot_SetLeds(PCA_LED_1_ADDRESS,data)
 #define foot_SetLedsGreen(data) _foot_SetLeds(PCA_LED_2_ADDRESS,data)
 #define foot_SetLedsBoth(yellow,green) foot_SetLedsYellow(yellow); foot_SetLedsGreen(green)
+
+/**
+ * @}
+ */
 
 /* Exported functions --------------------------------------------------------*/
 #ifdef I2C_FOOTSWITCH

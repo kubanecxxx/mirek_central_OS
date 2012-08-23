@@ -12,6 +12,11 @@
 
 #include "footswitch.h"
 
+/**
+ * @addtogroup HARMONIST
+ * @{
+ */
+
 //@todo přihodit vlákno na kontrolu zapnutí nebo vypnutí podle nastavení někde v paměti
 //@todo přihodit vlákno na vyčitání zmačknuti harmonizéru
 /* Private typedef -----------------------------------------------------------*/
@@ -23,6 +28,7 @@ static WORKING_AREA(wa_harmonizer,256);
 #endif
 bool_t _harm_enabled;
 
+///@brief sada konstant pro DAC
 const harmonizer_t HARMONIZER =
 {
 /*
@@ -51,6 +57,7 @@ static void harm_thread(void * data); //todo noreturn
 #ifdef I2C_HARMONIST
 /**
  * @brief thread for watching harmozier status
+ * @notapi
  */
 static void harm_thread(void * data)
 {
@@ -64,18 +71,21 @@ static void harm_thread(void * data)
 		//if odněkud jesli má byt zapnuto nebo vypnuto + co řiká ledka + mód
 		//todo broadcast pokud se zmačklo tlačitko
 
-		if ((_harm_enabled && !harm_getInput_LED(inputs))|| (!_harm_enabled && harm_getInput_LED(inputs)) )
-
-{		harm_pushButton(inputs);
-		chThdSleepMilliseconds(20);
-		harm_releaseButton(inputs);
-	}
+		//if ((_harm_enabled && !harm_getInput_LED(inputs))|| (!_harm_enabled && harm_getInput_LED(inputs)) )
+		if (_harm_enabled != harm_getInput_LED(inputs))
+		{
+			harm_pushButton(inputs);
+			chThdSleepMilliseconds(20);
+			harm_releaseButton(inputs);
+		}
 		chThdSleepMilliseconds(100);
 	}
 }
 
-/*
- * @brief set PCA output
+/**
+ * @brief set PCA outputs
+ * @param[in] bitmask
+ * @notapi
  */
 void _harm_SetOutputs(uint8_t data)
 {
@@ -91,6 +101,7 @@ void _harm_SetOutputs(uint8_t data)
 
 /**
  * @brief write harmonist DAC value
+ * @notapi
  */
 void _dac_write(DAC_channel channel, uint16_t voltage)
 {
@@ -165,38 +176,7 @@ void harm_init(void)
 	chThdCreateStatic(&wa_harmonizer, sizeof(wa_harmonizer), NORMALPRIO,
 			(tfunc_t) harm_thread, NULL );
 }
-
 /**
- * @brief test function from shell, set voltage accords channel
- */
-/*
- void harm_set(uint8_t channel, uint16_t index)
- {
- switch (channel)
- {
- //MODE
- case 0:
- harm_mode(index);
- break;
-
- //KEY
- case 1:
- harm_key(index);
- break;
-
- //HARMONY
- case 2:
- harm_harmony(index);
- break;
-
- //VOLUME
- case 3:
- harm_volume(index);
- break;
-
- default:
- break;
- }
- }
+ * @}
  */
 #endif

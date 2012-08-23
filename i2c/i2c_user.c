@@ -25,11 +25,11 @@ static void i2c_test_thread(void * data) __attribute__ ((noreturn));
 #endif
 /* Private functions ---------------------------------------------------------*/
 /**
- * @defgroup I2C_user
+ * @defgroup I2C
  */
 
 /**
- * @addtogroup I2C_user
+ * @addtogroup I2C
  * @{
  */
 

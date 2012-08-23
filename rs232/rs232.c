@@ -9,17 +9,37 @@
 #include "ch.h"
 #include "hal.h"
 #include "rs232.h"
+
+/**
+ * @defgroup RS232
+ *
+ */
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+/**
+ * @brief stream pro posilání dat do maršála
+ * @notapi
+ * @ingroup RS232
+ */
 BaseSequentialStream * marshall = (BaseSequentialStream*) &SD2;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
+/**
+ * @brief nastavení UARTU
+ * @notapi
+ * @ingroup RS232
+ */
 static const SerialConfig cfg =
 { 9600, 0, 0, 0 };
 
+/**
+ * @brief inicializace UART2
+ * @ingroup RS232
+ */
 void serial_init(void)
 {
 	sdStart(&SD2, &cfg);
