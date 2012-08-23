@@ -78,6 +78,7 @@ include touch/touch.mk
 #include rfm12b/rfm.mk
 include rs232/serial.mk
 include switching/switch.mk
+include logic/logic.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/STM32F407xG.ld

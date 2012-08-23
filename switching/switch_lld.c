@@ -62,7 +62,6 @@ void switch_init(void)
 	switch_demo();
 #endif
 
-//stvořit vlákna pro hlidání škuneru a overdrivu
 }
 
 uint32_t switch_getRelays(void)

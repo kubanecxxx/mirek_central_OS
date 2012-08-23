@@ -32,7 +32,7 @@
 #include "i2c_user.h"
 #include "usb_user.h"
 #include "rs232.h"
-#include "switch_lld.h"
+#include "switch_master.h"
 
 /*
  * external interrupt system config
@@ -112,9 +112,9 @@ int main(void)
 #endif
 
 	/**
-	 * @brief init gpio for relay switching
+	 * @brief init gpio for relay switching and optocouplers watching
 	 */
-	switch_init();
+	switch_masterGpioInit();
 
 	/*
 	 * start external interrupt system

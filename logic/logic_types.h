@@ -1,0 +1,253 @@
+/*
+ * logic_types.h
+ *
+ *  Created on: 22.8.2012
+ *      Author: kubanec
+ */
+
+#ifndef LOGIC_TYPES_H_
+#define LOGIC_TYPES_H_
+
+/********************************************************************
+ * Includes
+ ********************************************************************/
+#include "ch.h"
+
+/********************************************************************
+ * Exported types
+ ********************************************************************/
+
+/**
+ * @defgroup LOGIC
+ * @brief všechny datové typy použité při ukládání/rozhodování chování boardu
+ */
+
+/**
+ * @defroup vole
+ * @brief Vyšší struktury logiky pro rozhodování
+ */
+
+/**
+ * @brief efekty přes relé, jednotlivy bity/cely slovo; zapnout/vypnout
+ * @ingroup LOGIC
+ */
+typedef union
+{
+	struct
+	{
+		bool_t bit0 :1;
+		bool_t bit1 :1;
+		bool_t bit2 :1;
+		bool_t bit3 :1;
+		bool_t bit4 :1;
+		bool_t bit5 :1;
+		bool_t bit6 :1;
+		bool_t bit7 :1;
+		bool_t bit8 :1;
+		bool_t bit9 :1;
+		bool_t bit10 :1;
+		bool_t bit11 :1;
+		bool_t bit12 :1;
+		bool_t bit13 :1;
+		bool_t bit14 :1;
+		bool_t bit15 :1;
+		bool_t bit16 :1;
+		bool_t bit17 :1;
+		bool_t bit18 :1;
+		bool_t bit19 :1;
+		bool_t bit21 :1;
+		bool_t bit22 :1;
+		bool_t bit23 :1;
+		bool_t bit24 :1;
+		bool_t bit25 :1;
+		bool_t bit26 :1;
+		bool_t bit27 :1;
+		bool_t bit28 :1;
+		bool_t bit29 :1;
+		bool_t bit30 :1;
+		bool_t bit31 :1;
+	} s;
+	uint32_t w;
+} logic_bit_t;
+
+/**
+ * @brief nastavení efektů přes relé ve funkci - výčet stavů
+ * @ingroup LOGIC
+ */
+typedef enum
+{
+	EFF_ENABLE, EFF_DISABLE, EFF_TOGGLE, EFF_NOTHING
+} logic_effect_t;
+
+/**
+ * @brief nastavení efektů ve funkcích po dvojbitech/cely slovo
+ * @details stavy se použivaji z: @ref logic_effect_t
+ * @ingroup LOGIC
+ */
+typedef union
+{
+	struct
+	{
+		logic_effect_t eff0 :2;
+		logic_effect_t eff1 :2;
+		logic_effect_t eff2 :2;
+		logic_effect_t eff3 :2;
+		logic_effect_t eff4 :2;
+		logic_effect_t eff5 :2;
+		logic_effect_t eff6 :2;
+		logic_effect_t eff7 :2;
+		logic_effect_t eff8 :2;
+		logic_effect_t eff9 :2;
+		logic_effect_t eff10 :2;
+		logic_effect_t eff11 :2;
+		logic_effect_t eff12 :2;
+		logic_effect_t eff13 :2;
+		logic_effect_t eff14 :2;
+		logic_effect_t eff16 :2;
+		logic_effect_t eff17 :2;
+		logic_effect_t eff18 :2;
+		logic_effect_t eff19 :2;
+		logic_effect_t eff20 :2;
+		logic_effect_t eff21 :2;
+		logic_effect_t eff22 :2;
+		logic_effect_t eff23 :2;
+		logic_effect_t eff24 :2;
+		logic_effect_t eff25 :2;
+		logic_effect_t eff26 :2;
+		logic_effect_t eff27 :2;
+		logic_effect_t eff28 :2;
+		logic_effect_t eff29 :2;
+		logic_effect_t eff30 :2;
+		logic_effect_t eff31 :2;
+	} s;
+	uint64_t w;
+} logic_dibit_t;
+
+/**
+ * @brief struktura pro nastavení delaye
+ * @ingroup LOGIC
+ */
+typedef struct
+{
+	uint8_t volume;
+	uint8_t time;
+} logic_delay_t;
+
+/**
+ * @brief struktura pro nastavení harmonizéru
+ * @ingroup LOGIC
+ */
+typedef struct
+{
+	uint8_t mode;
+	uint8_t key;
+	uint8_t harmony;
+	uint16_t volume;
+} logic_harmonist_t;
+
+/**
+ * @brief struktura pro nastavení ledek
+ * @ingroup LOGIC
+ */
+typedef struct
+{
+
+} logic_leds_t;
+
+/**
+ * @brief specifické nastavení v kanálu/fci - delay,harmonist,leds
+ * @details používá: @ref logic_delay_t @ref logic_harmonist_t @ref logic_leds_t
+ * @ingroup LOGIC
+ */
+typedef struct
+{
+	//delay setting
+	logic_delay_t delay;
+	//harmonizer setting
+	logic_harmonist_t harmonist;
+	//led setting - kde a co , blikat
+	logic_leds_t leds;
+} logic_specific_t;
+
+
+
+/**
+ * @brief nastavení kanálu
+ * @ingroup HL_LOGIC
+ * @details kanál bude natvrdo nastavovat stavy efektů (nebude umět jenom přidat nebo jenom ubrat)
+ *
+ * používá: @ref logic_bit_t @ref logic_specific_t
+ */
+typedef struct
+{
+	const uint8_t * name;
+	logic_bit_t effects;
+
+	logic_specific_t * special;
+} logic_channel_t;
+
+typedef struct
+{
+	const uint8_t * name;
+	//user data - harm setup, delay setup, led setup
+	logic_dibit_t effects;
+
+	//podminka předchozího kanálu
+	uint8_t channelCondition;
+	logic_specific_t * special;
+
+} logic_function_t;
+
+typedef struct
+{
+	const uint8_t * name;
+
+	//tlačitko , kolikrát a na co to přemapovat
+	logic_button_t * button;
+	uint8_t remapIndex;
+	logic_buttonCall_t newCall;
+	//podmínka předchozího kanálu
+	uint8_t channelCondition;
+} logic_remap_t;
+
+typedef enum
+{
+	callType_channel, callType_function, callType_remap
+} logic_callType_t;
+
+typedef struct
+{
+	logic_callType_t callType;
+	void * call;
+} logic_buttonCall_t;
+
+typedef struct
+{
+	const uint8_t * name;
+	uint8_t pushCount;
+	uint8_t number;
+	uint8_t buttonCallCount;
+	logic_buttonCall_t * calls;
+} logic_button_t;
+
+typedef struct
+{
+	uint16_t channelCount;
+	uint16_t functionCount;
+	uint16_t remapCount;
+	uint16_t buttonCount;
+
+	//pointer to first item in list, limited by xxxCount
+	logic_channel_t * channels;
+	logic_function_t * functions;
+	logic_remap_t * remaps;
+	logic_button_t * buttons;
+} logic_bank_t;
+
+typedef struct
+{
+	uint16_t bankCount;
+	logic_bank_t * banks;
+} logic_base_t;
+
+#endif /* LOGIC_TYPES_H_ */
