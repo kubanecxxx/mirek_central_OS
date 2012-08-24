@@ -154,16 +154,6 @@ typedef struct
 } logic_harmonist_t;
 
 /**
- * @brief struktura pro nastavení ledek
- * @ingroup LOGIC
- * @todo todo domyslet implementaci
- */
-typedef struct
-{
-
-} logic_leds_t;
-
-/**
  * @brief specifické nastavení v kanálu/fci - delay,harmonist,leds
  * @details používá: @ref logic_delay_t @ref logic_harmonist_t @ref logic_leds_t
  * @ingroup LOGIC
@@ -174,8 +164,6 @@ typedef struct
 	logic_delay_t delay;
 	//harmonizer setting
 	logic_harmonist_t harmonist;
-	//led setting - kde a co , blikat
-	logic_leds_t leds;
 } logic_specific_t;
 
 /**
@@ -189,6 +177,7 @@ typedef struct
 {
 	const uint8_t * name;
 	logic_bit_t effects;
+	uint8_t index;
 
 	logic_specific_t * special;
 } logic_channel_t;
@@ -260,9 +249,33 @@ typedef struct
 	uint8_t buttonCallCount;
 	///sada pointrů
 	logic_buttonCall_t * calls;
-	///jesli se má reagovat na mačkání nebo jenom po dobu držení
-	bool_t pushHold;
+	struct
+	{
+		///jesli se má reagovat na mačkání nebo jenom po dobu držení
+		bool_t holdPush :1;
+		///jesli má reagovat hned nebo až po limitu
+		bool_t now :1;
+	} bit;
 } logic_button_t;
+
+/**
+ * @brief barva ledky která bude blikat podle mapování na tlačítka
+ * @ingroup LOGIC
+ */
+typedef enum
+{
+	COL_NONE, COL_YELLOW, COL_GREEN, COL_BOTH
+} logic_ledColor_t;
+
+/**
+ * @brief struktura pro blikání ledkou podle mapování ve vlákně
+ * @ingroup LOGIC
+ */
+typedef struct
+{
+	logic_ledColor_t ledColor;
+	uint8_t ledNumber;
+} logic_blinking;
 
 /**
  * @brief přemapování volání tlačítek na jiné
@@ -277,12 +290,14 @@ typedef struct
 {
 	const uint8_t * name;
 
-	//tlačitko , kolikrát a na co to přemapovat
+	///tlačitko , kolikrát a na co to přemapovat
 	logic_button_t * button;
 	uint8_t remapIndex;
 	logic_buttonCall_t newCall;
-	//podmínka předchozího kanálu
+	///podmínka předchozího kanálu
 	uint8_t channelCondition;
+	///barva ledky která bude blikat pokud bude namapovany na jaky tlačitko
+	logic_ledColor_t ledBlinkColor;
 } logic_remap_t;
 
 /**
@@ -323,5 +338,10 @@ typedef struct
 	///sada pointrů
 	logic_bank_t * banks;
 } logic_base_t;
+
+typedef struct
+{
+	//aktualní nastavení
+} logic_actual_t ;
 
 #endif /* LOGIC_TYPES_H_ */

@@ -165,13 +165,16 @@ static void i2c_receive_thread(void * data)
 
 static void glitch(void * data)
 {
-	chSysLockFromIsr();
-	extChannelEnableI(data,15);
-	chSysUnlockFromIsr();
+	chSysLockFromIsr()
+	;
+	extChannelEnableI(data, 15);
+	chSysUnlockFromIsr()
+	;
 }
 
 /**
  * @brief external interrupt from PCA_BUTTONS
+ * @notapi
  */
 void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 {
@@ -186,9 +189,9 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 	{
 		chVTResetI(&vt);
 	}
-	extChannelDisableI(extp,channel);
+	extChannelDisableI(extp, channel);
 	chVTSetI(&vt, MS2ST(STEP_TIMEOUT), timeout_cb, NULL ); //no another interrupt in 200ms (last step)
-	chVTSetI(&vt2, MS2ST(30), (vtfunc_t) glitch, extp );
+	chVTSetI(&vt2, MS2ST(30), (vtfunc_t) glitch, extp);
 
 	chEvtSignalFlagsI(foot_thd, EVENT_ID);
 	chSysUnlockFromIsr()
@@ -198,6 +201,7 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 /**
  * @brief PCA leds function
  * @note internal use only
+ * @notapi
  */
 void _foot_SetLeds(uint8_t address, uint8_t data)
 {
@@ -217,6 +221,32 @@ void _foot_SetLeds(uint8_t address, uint8_t data)
 	i2cAcquireBus(&I2CD1);
 	i2cMasterTransmit(&I2CD1, address, txbuf, 2, NULL, 0);
 	i2cReleaseBus(&I2CD1);
+}
+
+/**
+ * @brief PCA leds function
+ * @note internal use only
+ * @notapi
+ */
+uint8_t _foot_GetLeds(uint8_t address)
+{
+	uint8_t txbuf[2];
+	uint8_t rxbuf[2];
+	uint8_t temp;
+	txbuf[0] = PCA_IDR;
+
+	i2cAcquireBus(&I2CD1);
+	i2cMasterTransmit(&I2CD1, address, txbuf, 1, rxbuf, 2);
+	i2cReleaseBus(&I2CD1);
+
+	temp = rxbuf[0];
+	temp &= 0x0F;
+	temp |= ((rxbuf[0] & 0b10000000) >> 1);
+	temp |= ((rxbuf[0] & 0b01000000) << 1);
+	temp |= ((rxbuf[0] & 0b00100000) >> 1);
+	temp |= ((rxbuf[0] & 0b00010000) << 1);
+
+	return temp;
 }
 
 /**
