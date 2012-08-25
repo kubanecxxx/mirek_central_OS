@@ -12,10 +12,28 @@
  * Includes
  ********************************************************************/
 #include "ch.h"
+#include "footswitch.h"
 
 /********************************************************************
  * Exported types
  ********************************************************************/
+
+/*
+ banky
+ ------kanály
+ ------------name
+ ------------special
+ ------funkce
+ ------------name
+ ------------special
+ ------remapy
+ ------------name
+ ------------button
+ ------tlačitka
+ ------------name
+ ------------calls
+ -----------------call
+ */
 
 /**
  * @defgroup Logika
@@ -137,8 +155,8 @@ typedef union
  */
 typedef struct
 {
-	uint8_t volume;
-	uint8_t time;
+	uint16_t volume;
+	uint16_t time;
 } logic_delay_t;
 
 /**
@@ -167,6 +185,21 @@ typedef struct
 } logic_specific_t;
 
 /**
+ * @brief nastavení maršála
+ * @ingroup LOGIC
+ */
+typedef struct
+{
+	uint8_t gain :4;
+	uint8_t volume :4;
+
+	logic_effect_t mute :2;
+	logic_effect_t high :2;
+	logic_effect_t effLoop :2;
+
+} logic_marshall_t;
+
+/**
  * @brief nastavení kanálu
  * @ingroup LOGIC_HL
  * @details kanál bude natvrdo nastavovat stavy efektů (nebude umět jenom přidat nebo jenom ubrat)
@@ -175,11 +208,12 @@ typedef struct
  */
 typedef struct
 {
-	const uint8_t * name;
+	const char * name;
 	logic_bit_t effects;
 	uint8_t index;
 
 	logic_specific_t * special;
+	logic_marshall_t marshall;
 } logic_channel_t;
 
 /**
@@ -195,13 +229,14 @@ typedef struct
 typedef struct
 {
 	///jméno
-	const uint8_t * name;
+	const char * name;
 	///user data - harm setup, delay setup, led setup
 	logic_dibit_t effects;
 
 	///podminka předchozího kanálu
 	uint8_t channelCondition;
 	logic_specific_t * special;
+	logic_marshall_t marshall;
 
 } logic_function_t;
 
@@ -220,12 +255,16 @@ typedef enum
  *
  * @details potřeba zadávat typ @ref logic_callType_t,
  * aby věděl které funkci má argument předat
- * @todo todo promyslet virtual method table
  */
 typedef struct
 {
+	///typ volání (funkce kanál efekt repam0)
 	logic_callType_t callType;
+	///pointer na argument
 	void * call;
+	///jméno argumetu pro usera
+	char * CallName;
+
 } logic_buttonCall_t;
 
 /**
@@ -240,11 +279,8 @@ typedef struct
 typedef struct
 {
 	///jméno
-	const uint8_t * name;
-	///počet zmačknuti
-	uint8_t pushCount;
-	///čislo tlačitka
-	uint8_t number;
+	const char * name;
+	foot_t button;
 	///počet argumentů volání
 	uint8_t buttonCallCount;
 	///sada pointrů
@@ -252,7 +288,7 @@ typedef struct
 	struct
 	{
 		///jesli se má reagovat na mačkání nebo jenom po dobu držení
-		bool_t holdPush :1;
+		bool_t hold :1;
 		///jesli má reagovat hned nebo až po limitu
 		bool_t now :1;
 	} bit;
@@ -288,16 +324,17 @@ typedef struct
  */
 typedef struct
 {
-	const uint8_t * name;
-
-	///tlačitko , kolikrát a na co to přemapovat
-	logic_button_t * button;
-	uint8_t remapIndex;
-	logic_buttonCall_t newCall;
+	const char * name;
+	///na tohle tlačítko bude namapovávat - zbytek si budu muset vypočitat než zapišu do flaš
+	const char * ButtonName;
 	///podmínka předchozího kanálu
 	uint8_t channelCondition;
 	///barva ledky která bude blikat pokud bude namapovany na jaky tlačitko
 	logic_ledColor_t ledBlinkColor;
+	///interně si vypočte před zápisem do flašky přesně tlačitko k přemapování
+	foot_t button;
+	///interně si vypočte před záspisem do flašky přesně argument a jeho typ
+	logic_buttonCall_t newCall;
 } logic_remap_t;
 
 /**
@@ -310,7 +347,7 @@ typedef struct
 typedef struct
 {
 	///jméno
-	const uint8_t * name;
+	const char * name;
 
 	uint16_t channelCount;
 	uint16_t functionCount;
@@ -338,10 +375,5 @@ typedef struct
 	///sada pointrů
 	logic_bank_t * banks;
 } logic_base_t;
-
-typedef struct
-{
-	//aktualní nastavení
-} logic_actual_t ;
 
 #endif /* LOGIC_TYPES_H_ */

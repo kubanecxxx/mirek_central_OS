@@ -20,6 +20,7 @@
 #include "delay.h"
 #include "switch_master.h"
 #include "string.h"
+#include "logic_fill.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -239,5 +240,8 @@ const ShellCommand commands[] =
 		{ "relay", cmd_relay },
 		{ "opto", cmd_opto },
 #endif
+		//structs filling via usb
+#include "logic_shell.h"
+
 		{ NULL, NULL } };
 

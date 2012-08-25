@@ -33,6 +33,7 @@
 #include "usb_user.h"
 #include "rs232.h"
 #include "switch_master.h"
+#include "logic_use_test.h"
 
 /*
  * external interrupt system config
@@ -79,6 +80,8 @@ int main(void)
 
 	halInit();
 	chSysInit();
+
+	test_logic_fill();
 
 	/*
 	 * start shell for RS232 - communication with marshall

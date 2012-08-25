@@ -1,13 +1,13 @@
 /**
- * @file logic_use.h
+ * @file logic_use_test.h
  * @author kubanec
- * @date 23.8.2012
+ * @date 25.8.2012
  *
  */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef LOGIC_USE_H_
-#define LOGIC_USE_H_
+#ifndef LOGIC_USE_TEST_H_
+#define LOGIC_USE_TEST_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,11 +18,10 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-void logic_button(const logic_bank_t * bank, const foot_t * button);
-void logic_init(void);
+void test_logic_fill(void);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* LOGIC_USE_H_ */
+#endif /* LOGIC_USE_TEST_H_ */

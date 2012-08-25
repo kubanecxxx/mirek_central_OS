@@ -60,6 +60,11 @@
 #define RELAY_SHELL
 
 /*
+ * LOGIC crap
+ */
+#define LOGIC_USE_TEST
+
+/*
  * HAL driver system settings.
  */
 #define STM32_NO_INIT                       FALSE

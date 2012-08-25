@@ -15,6 +15,7 @@ extern "C"
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include "chprintf.h"
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 extern BaseSequentialStream * marshall;
@@ -55,7 +56,7 @@ extern BaseSequentialStream * marshall;
  * @brief Zapne efektovou smyčku
  * @ingroup RS232
  */
-#define serial_loopOn() chrpintf(marshall,"loop on")
+#define serial_loopOn() chprintf(marshall,"loop on")
 /**
  * @brief Vypne efektovou smyčku (true bypass)
  * @ingroup RS232

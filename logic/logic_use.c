@@ -8,10 +8,13 @@
 /* Includes ------------------------------------------------------------------*/
 #include "ch.h"
 #include "hal.h"
+#include "chprintf.h"
 #include "logic_types.h"
-#include "logic_use.h"
 #include "switch_master.h"
 #include "i2c_user.h"
+#include "rs232.h"
+#include "logic_use.h"
+
 
 /* Private typedef -----------------------------------------------------------*/
 typedef struct
@@ -30,16 +33,21 @@ logic_active_t active;
 /* Private function prototypes -----------------------------------------------*/
 static void logic_specific(const logic_specific_t * arg);
 static void logic_blinkingThread(void * data);
+static void logic_marshallSetup(const logic_marshall_t * marsh);
 
 /* Private functions ---------------------------------------------------------*/
 void logic_init(void)
 {
+	//dohodit sadu inicializací i2c,gpio,opto,serial
+
 	//switch_masterGpioInit();
 
 	active.bank = NULL;
 	//inicializovat aktivni
 
 	// todo zajistit aby věci byly v ramce co maji byt
+
+	//počáteční init efektů
 
 	chThdCreateStatic(&wa_blinking, sizeof(wa_blinking), NORMALPRIO,
 			(tfunc_t) logic_blinkingThread, NULL );
@@ -54,7 +62,6 @@ void logic_init(void)
  * @param[in] function setup
  * @ingroup LOGIC_HL
  *
- * @todo todo dodat podmínku předchozího kanálu
  */
 static void logic_function(const logic_function_t * arg)
 {
@@ -113,6 +120,8 @@ static void logic_function(const logic_function_t * arg)
 		delay_toggle();
 
 	active.activeFunctions[active.count++] = arg;
+
+	logic_marshallSetup(&arg->marshall);
 }
 
 /**
@@ -152,6 +161,42 @@ static void logic_channel(const logic_channel_t * arg)
 		delay_on();
 	else
 		delay_off();
+
+	logic_marshallSetup(&arg->marshall);
+}
+
+/**
+ * @brief nastavení maršála po complotě
+ */
+static void logic_marshallSetup(const logic_marshall_t * marsh)
+{
+	//od 1-4 jinak se nic nestane
+	serial_gain(marsh->gain);
+	serial_volume(marsh->volume);
+
+	if (marsh->effLoop != EFF_NOTHING)
+	{
+		if (marsh->effLoop == EFF_ENABLE)
+			serial_loopOn();
+		else
+			serial_loopBypass();
+	}
+
+	if (marsh->high != EFF_NOTHING)
+	{
+		if (marsh->high == EFF_ENABLE)
+			serial_channelHigh();
+		else
+			serial_channelLow();
+	}
+
+	if (marsh->mute != EFF_NOTHING)
+	{
+		if (marsh->mute == EFF_ENABLE)
+			serial_mute();
+		else
+			serial_unmute();
+	}
 }
 
 /**
@@ -161,9 +206,10 @@ static void logic_channel(const logic_channel_t * arg)
  */
 static void logic_remap(const logic_remap_t * arg)
 {
-	uint8_t remapIndex = arg->remapIndex;
+	//uint8_t remapIndex = arg->remapIndex;
 
-	arg->button->calls[remapIndex] = arg->newCall;
+	//arg->button->calls[remapIndex] = arg->newCall;
+	//napsat to na přehazování podle ména
 }
 
 /**
@@ -209,7 +255,7 @@ void logic_button(const logic_bank_t * bank, const foot_t * button)
 	{
 		but = &bank->buttons[i];
 
-		if (but->number == button->pin && but->pushCount == button->count)
+		if (but->button.pin == button->pin && but->button.count == button->count )
 		{
 			break;
 		}
@@ -238,13 +284,15 @@ void logic_button(const logic_bank_t * bank, const foot_t * button)
 		else if (call->callType == callType_function)
 		{
 			func = (logic_function_t *) call->call;
-			if (func->channelCondition == prevChannel)
+			if (func->channelCondition == prevChannel
+					|| func->channelCondition == 0)
 				logic_function(func);
 		}
 		else if (call->callType == callType_remap)
 		{
 			remap = (logic_remap_t *) call->call;
-			if (remap->channelCondition == prevChannel)
+			if (remap->channelCondition == prevChannel
+					|| remap->channelCondition == 0)
 				logic_remap(remap);
 		}
 	}
@@ -299,10 +347,11 @@ static void logic_blinkingThread(void * data)
 					if (remap->ledBlinkColor != COL_NONE)
 					{
 						//pokud je fce aktivní tak to musi zahodit
+						//prohledat active jesli náhodou se ointery nerovnaji
 						//	if (active)
 						{
 							pole[k].ledColor = remap->ledBlinkColor;
-							pole[k].ledNumber = active.bank->buttons[i].number;
+						//	pole[k].ledNumber = active.bank->buttons[i].number;
 							k++;
 						}
 					}
