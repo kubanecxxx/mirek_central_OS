@@ -57,11 +57,9 @@ static uint32_t EndAddress;
  */
 char * logic_flashWriteName(char * name)
 {
+	static uint32_t addr = FLASH_NAME_ADDRESS;
 	uint8_t len = strlen(name);
-	char buffer[20];
-
-	strcpy (buffer,name);
-	return logic_flashWrite(LastAddress, buffer, len + 1);
+	return logic_flashWrite(&addr, name, len + 1);
 }
 
 /**
@@ -69,8 +67,10 @@ char * logic_flashWriteName(char * name)
  */
 logic_specific_t * logic_flashWriteSpecial(logic_specific_t * spec)
 {
+	static uint32_t addr = FLASH_SPECIAL_ADDRESS;
+
 	if (spec != NULL )
-		return logic_flashWrite(LastAddress, spec, sizeof(logic_specific_t));
+		return logic_flashWrite(&addr, spec, sizeof(logic_specific_t));
 	else
 		return NULL ;
 }
@@ -80,7 +80,9 @@ logic_specific_t * logic_flashWriteSpecial(logic_specific_t * spec)
  */
 logic_channel_t * logic_flashWriteChannel(logic_channel_t * chan)
 {
-	return logic_flashWrite(LastAddress, chan, sizeof(logic_channel_t));
+	static uint32_t addr = FLASH_CHANNEL_ADDRESS;
+
+	return logic_flashWrite(&addr, chan, sizeof(logic_channel_t));
 }
 
 /**
@@ -88,7 +90,9 @@ logic_channel_t * logic_flashWriteChannel(logic_channel_t * chan)
  */
 logic_function_t * logic_flashWriteFunction(logic_function_t * func)
 {
-	return logic_flashWrite(LastAddress, func, sizeof(logic_function_t));
+	static uint32_t addr = FLASH_FUNCTION_ADDRESS;
+
+	return logic_flashWrite(&addr, func, sizeof(logic_function_t));
 }
 
 /**
@@ -96,7 +100,117 @@ logic_function_t * logic_flashWriteFunction(logic_function_t * func)
  */
 logic_remap_t * logic_flashWriteRemap(logic_remap_t * rem)
 {
-	return logic_flashWrite(LastAddress, rem, sizeof(logic_remap_t));
+	static uint32_t addr = FLASH_REMAP_ADDRESS;
+
+	return logic_flashWrite(&addr, rem, sizeof(logic_remap_t));
+}
+
+/**
+ * @ingroup logic_buttons
+ */
+logic_buttonCall_t * logic_flashWriteButtonCall(logic_buttonCall_t * call)
+{
+	static uint32_t addr = FLASH_CALLS_ADDRESS;
+
+	if (call != NULL )
+		return logic_flashWrite(&addr, call, sizeof(logic_buttonCall_t));
+	else
+		return NULL ;
+}
+
+/**
+ * @ingroup logic_buttons
+ */
+logic_buttonCall_t * logic_flashWriteAllButtonCalls(const logic_bank_t * bank,
+		logic_button_t * button)
+{
+	logic_buttonCall_t * call = button->calls;
+	logic_buttonCall_t * first;
+	const char * callName;
+	uint8_t cunt = button->buttonCallCount;
+	uint8_t i, j;
+	uint8_t cant;
+
+	for (i = 0; i < cunt; i++)
+	{
+		call = &button->calls[i];
+		callName = call->CallName;
+
+		//prohledat všecky funkce,kanály,remapy
+		cant = bank->functionCount;
+		for (j = 0; j < cant; j++)
+		{
+			if (!strcmp(bank->functions[j].name, callName))
+			{
+				call->call = &bank->functions[j];
+				call->callType = callType_function;
+			}
+		}
+
+		cant = bank->channelCount;
+		for (j = 0; j < cant; j++)
+		{
+			if (!strcmp(bank->channels[j].name, callName))
+			{
+				call->call = &bank->channels[j];
+				call->callType = callType_channel;
+			}
+		}
+
+		cant = bank->remapCount;
+		for (j = 0; j < cant; j++)
+		{
+			if (!strcmp(bank->remaps[j].name, callName))
+			{
+				call->call = &bank->remaps[j];
+				call->callType = callType_remap;
+			}
+		}
+
+		call = logic_flashWriteButtonCall(call);
+
+		if (i == 0)
+			first = call;
+	}
+	button->calls = first;
+
+	return first;
+}
+
+/**
+ * @ingroup logic_buttons
+ */
+logic_button_t * logic_flashWriteButton(const logic_bank_t * bank,
+		logic_button_t * but)
+{
+	static uint32_t addr = FLASH_BUTTON_ADDRESS;
+	but->calls = logic_flashWriteAllButtonCalls(bank, but);
+
+	return logic_flashWrite(&addr, but, sizeof(logic_button_t));
+}
+
+/**
+ * @ingroup logic_buttons
+ */
+logic_button_t * logic_flashWriteAllButtons(logic_bank_t * bank)
+{
+	logic_button_t * but;
+	logic_button_t * first;
+	uint8_t i;
+	uint8_t cunt = bank->buttonCount;
+
+	for (i = 0; i < cunt; i++)
+	{
+		but = &bank->buttons[i];
+		but = logic_flashWriteButton(bank, but);
+
+		if (i == 0)
+			first = but;
+	}
+
+	bank->buttons = first;
+	return first;
+
 }
 
 /**
@@ -154,7 +268,84 @@ logic_function_t * logic_flashWriteAllFunctions(logic_bank_t * bank)
  */
 logic_remap_t * logic_flashWriteAllRemaps(logic_bank_t * bank)
 {
+	const char * name;
+	const char * buttonName;
+	const char * newName;
+	const char * oldName;
 
+	logic_remap_t * remap, *first;
+	const logic_button_t * but_it;
+	const logic_function_t * func_it;
+	const logic_remap_t * remap_it;
+	uint8_t cunt = bank->remapCount;
+	uint8_t i, j;
+
+	for (i = 0; i < cunt; i++)
+	{
+		remap = &bank->remaps[i];
+
+		name = remap->name;
+		buttonName = remap->ButtonName;
+		newName = remap->newCall.CallName;
+		oldName = remap->oldCall.CallName;
+
+		//vypočitat foot_t button a logic_buttonCall_t newcall
+
+		//vypočítat foot_t button
+		//prohledat všecky tlačitka a najit stejny
+		//jméno a pak z něho vytahnout co je potřeba
+		for (j = 0; j < bank->buttonCount; j++)
+		{
+			but_it = &bank->buttons[j];
+
+			if (!strcmp(buttonName, but_it->name))
+			{
+				remap->button.count = but_it->button.count;
+				remap->button.pin = but_it->button.pin;
+			}
+		}
+
+		//vypočítat adresy funkcí na kterou to má přemapovat
+		// a z které
+		for (j = 0; j < bank->functionCount; j++)
+		{
+			func_it = &bank->functions[j];
+
+			if (!strcmp(newName, func_it->name))
+			{
+				remap->newCall.callType = callType_function;
+				remap->newCall.call = func_it;
+			}
+			else if (!strcmp(oldName, func_it->name))
+			{
+				remap->oldCall.callType = callType_function;
+				remap->oldCall.call = func_it;
+			}
+		}
+
+		//vypočitat přemapování remapů
+		for (j = 0; j < bank->remapCount; j++)
+		{
+			remap_it = &bank->remaps[j];
+
+			if (!strcmp(newName, func_it->name))
+			{
+				remap->newCall.callType = callType_remap;
+				remap->newCall.call = remap_it;
+			}
+			else if (!strcmp(oldName, func_it->name))
+			{
+				remap->oldCall.callType = callType_remap;
+				remap->oldCall.call = remap_it;
+			}
+		}
+
+		remap = logic_flashWriteRemap(remap);
+		if (i == 0)
+			first = remap;
+	}
+	bank->remaps = first;
+	return first;
 }
 
 /**
@@ -162,9 +353,28 @@ logic_remap_t * logic_flashWriteAllRemaps(logic_bank_t * bank)
  */
 logic_bank_t * logic_flashWriteBank(logic_bank_t * bank)
 {
+	static uint32_t addr = FLASH_BANK_ADDRESS;
+	logic_bank_t * temp;
+
 	logic_flashWriteAllChannels(bank);
 	logic_flashWriteAllFunctions(bank);
 	logic_flashWriteAllRemaps(bank);
+	logic_flashWriteAllButtons(bank);
+
+	temp = logic_flashWrite(&addr, bank, sizeof(logic_bank_t));
+
+	return temp;
+}
+
+/**
+ * @ingroup logic_flash_bank
+ */
+logic_base_t * logic_flashWriteBase(logic_base_t * base)
+{
+	static uint32_t addr = FLASH_BASE_ADDRESS;
+	base->banks = (logic_bank_t *) FLASH_BANK_ADDRESS;
+
+	return logic_flashWrite(&addr, base, sizeof(logic_base_t));
 }
 
 /**
@@ -172,7 +382,7 @@ logic_bank_t * logic_flashWriteBank(logic_bank_t * bank)
  * @{
  */
 
-void * logic_flashWrite(uint32_t Address, void * datas, uint32_t size)
+void * logic_flashWrite(uint32_t * Address, void * datas, uint32_t size)
 {
 	void * temp;
 	chSysLock()
@@ -193,21 +403,22 @@ void logic_flashErase(uint32_t start, uint32_t stop)
 	;
 }
 
-void * logic_flashWriteS(uint32_t Address, void * datas, uint32_t size)
+void * logic_flashWriteS(uint32_t * Address, void * datas, uint32_t size)
 {
 	uint32_t * data = (uint32_t *) datas;
-	uint32_t temp = Address;
+	uint32_t temp = *Address;
 
 	FLASH_Unlock();
 	while (size % 4 != 0)
 		size++;
 
 	size /= 4;
+
 	while (size--)
 	{
-		if (FLASH_ProgramWord(Address, *(data++)) == FLASH_COMPLETE)
+		if (FLASH_ProgramWord(*Address, *(data++)) == FLASH_COMPLETE)
 		{
-			Address += 4;
+			*Address += 4;
 		}
 		else
 		{
@@ -218,7 +429,7 @@ void * logic_flashWriteS(uint32_t Address, void * datas, uint32_t size)
 			}
 		}
 	}
-	LastAddress = Address;
+	//LastAddress = Address;
 	FLASH_Lock();
 
 	return (void *) temp;

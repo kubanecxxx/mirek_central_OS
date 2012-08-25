@@ -29,7 +29,7 @@
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 
-#define TEST_WA_SIZE    THD_WA_SIZE(256)
+#define TEST_WA_SIZE    THD_WA_SIZE(1024)
 static void cmd_mem(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	size_t n, size;

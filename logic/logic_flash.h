@@ -32,11 +32,26 @@ extern "C"
 #define ADDR_FLASH_SECTOR_10    ((uint32_t)0x080C0000) /* Base @ of Sector 10, 128 Kbytes */
 #define ADDR_FLASH_SECTOR_11    ((uint32_t)0x080E0000) /* Base @ of Sector 11, 128 Kbytes */
 
+#define FLASH_ADDRESS_START ADDR_FLASH_SECTOR_8
+#define FLASH_ADDRESS_STOP ADDR_FLASH_SECTOR_9
+
+#define FLASH_MACRO(offset) 	(FLASH_ADDRESS_START | offset)
+#define FLASH_NAME_ADDRESS		FLASH_MACRO(0x0000)
+#define FLASH_BASE_ADDRESS 		FLASH_MACRO(0x1000)
+#define FLASH_BANK_ADDRESS		FLASH_MACRO(0x2000)
+#define FLASH_CHANNEL_ADDRESS 	FLASH_MACRO(0x3000)
+#define FLASH_FUNCTION_ADDRESS 	FLASH_MACRO(0x4000)
+#define FLASH_SPECIAL_ADDRESS 	FLASH_MACRO(0x5000)
+
+#define FLASH_BUTTON_ADDRESS 	FLASH_MACRO(0x6000)
+#define FLASH_REMAP_ADDRESS 	FLASH_MACRO(0x7000)
+#define FLASH_CALLS_ADDRESS 	FLASH_MACRO(0x8000)
+
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-void * logic_flashWrite(uint32_t Address, void * datas, uint32_t size);
+void * logic_flashWrite(uint32_t * Address, void * datas, uint32_t size);
 void logic_flashErase(uint32_t start, uint32_t stop);
-void * logic_flashWriteS(uint32_t Address, void * datas, uint32_t size);
+void * logic_flashWriteS(uint32_t * Address, void * datas, uint32_t size);
 void logic_flashEraseS(uint32_t start, uint32_t stop);
 uint8_t logic_flashGetSector(uint32_t Address);
 
@@ -49,6 +64,7 @@ logic_bank_t * logic_flashWriteBank(logic_bank_t * bank);
 
 logic_function_t * logic_flashWriteAllFunctions(logic_bank_t * bank);
 logic_channel_t * logic_flashWriteAllChannels(logic_bank_t * bank);
+logic_base_t * logic_flashWriteBase(logic_base_t * base);
 
 #ifdef __cplusplus
 }

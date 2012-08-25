@@ -261,9 +261,9 @@ typedef struct
 	///typ volání (funkce kanál efekt repam0)
 	logic_callType_t callType;
 	///pointer na argument
-	void * call;
+	const void * call;
 	///jméno argumetu pro usera
-	char * CallName;
+	const char * CallName;
 
 } logic_buttonCall_t;
 
@@ -335,6 +335,7 @@ typedef struct
 	foot_t button;
 	///interně si vypočte před záspisem do flašky přesně argument a jeho typ
 	logic_buttonCall_t newCall;
+	logic_buttonCall_t oldCall;
 } logic_remap_t;
 
 /**

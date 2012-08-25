@@ -207,6 +207,7 @@ static void logic_marshallSetup(const logic_marshall_t * marsh)
 static void logic_remap(const logic_remap_t * arg)
 {
 	//uint8_t remapIndex = arg->remapIndex;
+	//hodit mu sem remap a tlačitko, index už si bude muset vypočtitat sám
 
 	//arg->button->calls[remapIndex] = arg->newCall;
 	//napsat to na přehazování podle ména

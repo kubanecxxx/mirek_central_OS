@@ -19,6 +19,30 @@
 /* Private typedef -----------------------------------------------------------*/
 typedef struct
 {
+	uint8_t bankCounter;
+	logic_bank_t bank[10];
+
+	uint8_t channelCounter;
+	logic_channel_t channel[10];
+
+	uint8_t functionCounter;
+	logic_function_t function[10];
+
+	uint8_t remapCounter;
+	logic_remap_t remap[10];
+
+	uint8_t buttonCounter;
+	logic_button_t button[10];
+
+	uint8_t specialCounter;
+	logic_specific_t special[10];
+
+	uint8_t callCounter;
+	logic_buttonCall_t call[30];
+} fill_temp_static_t;
+
+typedef struct
+{
 	logic_base_t base;
 	logic_bank_t * bank;
 	logic_channel_t * channel;
@@ -37,26 +61,42 @@ typedef struct
 /*
  * Heaps macro set
  */
-#define OFFSET 10000
-#define HEAP_END (__heap_base__ + OFFSET)
-#define heap_channel_init() chHeapInit(&heap_channel,HEAP_END,OFFSET)
-#define heap_function_init() chHeapInit(&heap_function,HEAP_END + OFFSET,OFFSET)
-#define heap_bank_init() chHeapInit(&heap_bank, HEAP_END + 2*OFFSET, OFFSET)
-#define heap_special_init() chHeapInit(&heap_special, HEAP_END + 3*OFFSET, OFFSET)
-#define heap_button_init()  chHeapInit(&heap_button, HEAP_END + 4*OFFSET, OFFSET)
-#define heap_remap_init()  chHeapInit(&heap_remap, HEAP_END + 5*OFFSET, OFFSET)
-#define heap_calls_init()  chHeapInit(&heap_calls, HEAP_END + 6*OFFSET, OFFSET)
+/*
+ #define OFFSET 10000
+ #define HEAP_END (__heap_base__ + OFFSET)
+ #define heap_channel_init() chHeapInit(&heap_channel,HEAP_END,OFFSET)
+ #define heap_function_init() chHeapInit(&heap_function,HEAP_END + OFFSET,OFFSET)
+ #define heap_bank_init() chHeapInit(&heap_bank, HEAP_END + 2*OFFSET, OFFSET)
+ #define heap_special_init() chHeapInit(&heap_special, HEAP_END + 3*OFFSET, OFFSET)
+ #define heap_button_init()  chHeapInit(&heap_button, HEAP_END + 4*OFFSET, OFFSET)
+ #define heap_remap_init()  chHeapInit(&heap_remap, HEAP_END + 5*OFFSET, OFFSET)
+ #define heap_calls_init()  chHeapInit(&heap_calls, HEAP_END + 6*OFFSET, OFFSET)
 
-#define alloc_channel() (logic_channel_t *)chHeapAlloc(&heap_channel,sizeof(logic_channel_t))
-#define alloc_bank() (logic_bank_t *)chHeapAlloc(&heap_bank, sizeof(logic_bank_t))
-#define alloc_special() (logic_specific_t *)chHeapAlloc(&heap_bank, sizeof(logic_specific_t))
-#define alloc_button() (logic_button_t *)chHeapAlloc(&heap_bank, sizeof(logic_button_t))
-#define alloc_remap() (logic_remap_t *)chHeapAlloc(&heap_bank, sizeof(logic_remap_t))
-#define alloc_function() (logic_function_t *)chHeapAlloc(&heap_function, sizeof(logic_function_t))
-#define alloc_call() (logic_buttonCall_t *)chHeapAlloc(&heap_calls, sizeof(logic_buttonCall_t))
+ #define alloc_channel() (logic_channel_t *)chHeapAlloc(&heap_channel,sizeof(logic_channel_t))
+ #define alloc_bank() (logic_bank_t *)chHeapAlloc(&heap_bank, sizeof(logic_bank_t))
+ #define alloc_special() (logic_specific_t *)chHeapAlloc(&heap_bank, sizeof(logic_specific_t))
+ #define alloc_button() (logic_button_t *)chHeapAlloc(&heap_bank, sizeof(logic_button_t))
+ #define alloc_remap() (logic_remap_t *)chHeapAlloc(&heap_bank, sizeof(logic_remap_t))
+ #define alloc_function() (logic_function_t *)chHeapAlloc(&heap_function, sizeof(logic_function_t))
+ #define alloc_call() (logic_buttonCall_t *)chHeapAlloc(&heap_calls, sizeof(logic_buttonCall_t))
+ */
+#define heap_neco_init(type) _fill_static->type##Counter = 0
+#define heap_channel_init() heap_neco_init(channel)
+#define heap_function_init() heap_neco_init(function)
+#define heap_bank_init() heap_neco_init(bank)
+#define heap_button_init() heap_neco_init(button)
+#define heap_remap_init() heap_neco_init(remap)
+#define heap_special_init() heap_neco_init(special)
+#define heap_calls_init() heap_neco_init(call)
 
-#define FLASH_ADDRESS_START ADDR_FLASH_SECTOR_9
-#define FLASH_ADDRESS_STOP (ADDR_FLASH_SECTOR_10 - 4)
+#define alloc_neco(type) &_fill_static->type[_fill_static->type##Counter++];
+#define alloc_channel() alloc_neco(channel)
+#define alloc_bank() alloc_neco(bank)
+#define alloc_special() alloc_neco(special)
+#define alloc_button() alloc_neco(button)
+#define alloc_remap() alloc_neco(remap)
+#define alloc_function() alloc_neco(function)
+#define alloc_call() alloc_neco(call)
 
 /*
  * helping macro for setting effects dibit
@@ -66,14 +106,17 @@ word &= ~(0b11 << (2 * number)); \
 word |= (eff_state << (2*number))
 /* Private variables ---------------------------------------------------------*/
 static fill_temp_t fill_actives;
+static fill_temp_static_t * _fill_static;
 
-static MemoryHeap heap_bank;
-static MemoryHeap heap_channel;
-static MemoryHeap heap_function;
-static MemoryHeap heap_special;
-static MemoryHeap heap_button;
-static MemoryHeap heap_remap;
-static MemoryHeap heap_calls;
+/*
+ static MemoryHeap heap_bank;
+ static MemoryHeap heap_channel;
+ static MemoryHeap heap_function;
+ static MemoryHeap heap_special;
+ static MemoryHeap heap_button;
+ static MemoryHeap heap_remap;
+ static MemoryHeap heap_calls;
+ */
 
 extern uint8_t __heap_base__[];
 
@@ -131,8 +174,13 @@ void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	(void) argc;
 	(void) argv;
 
+	uint32_t temp;
 	//smazat flašku a připravit pro zápis
-	logic_flashErase(FLASH_ADDRESS_START, FLASH_ADDRESS_STOP);
+	logic_flashErase(FLASH_ADDRESS_START, FLASH_ADDRESS_STOP );
+
+	temp = chCoreStatus();
+	_fill_static = chCoreAlloc(sizeof(fill_temp_static_t));
+	temp = chCoreStatus();
 
 	//vymazat cache
 	fill_actives.base.bankCount = 0;
@@ -155,8 +203,15 @@ void cmd_closeLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	(void) argv;
 
 	//uložit posledni banku
+	logic_flashWriteBank(fill_actives.bank);
+
 	//uložit sadu bank na předem známou adresu
-	chprintf(chp, "Okej");
+	logic_flashWriteBase(&fill_actives.base);
+
+	//todo uvolnit paměť
+
+	if (chp != NULL )
+		chprintf(chp, "Okej");
 }
 
 /**
@@ -195,6 +250,7 @@ void cmd_bankAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		heap_special_init();
 		heap_button_init();
 		heap_remap_init();
+		heap_calls_init();
 
 		if (fill_actives.base.banks == NULL )
 		{
@@ -227,34 +283,34 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[])
 	{
 		temp = alloc_channel();
 		//inicializovat všechno na nuly a tak
-		fill_actives.channel = temp;
-		temp->index = fill_actives.bank->channelCount++;
+				fill_actives.channel = temp;
+				temp->index = ++fill_actives.bank->channelCount;
 
-		temp->effects.w = 0;
-		temp->marshall.effLoop = EFF_ENABLE;
-		temp->marshall.gain = 1;
-		temp->marshall.volume = 1;
-		temp->marshall.mute = EFF_DISABLE;
-		temp->marshall.high = EFF_ENABLE;
-		temp->name = NULL;
-		temp->special = NULL;
+				temp->effects.w = 0;
+				temp->marshall.effLoop = EFF_ENABLE;
+				temp->marshall.gain = 1;
+				temp->marshall.volume = 1;
+				temp->marshall.mute = EFF_DISABLE;
+				temp->marshall.high = EFF_ENABLE;
+				temp->name = NULL;
+				temp->special = NULL;
 
-		if (fill_actives.bank->channels == NULL )
-			fill_actives.bank->channels = fill_actives.channel;
+				if (fill_actives.bank->channels == NULL )
+				fill_actives.bank->channels = fill_actives.channel;
 
-		//uložit jméno do flašky
-		fill_actives.channel->name = logic_flashWriteName(argv[0]);
+				//uložit jméno do flašky
+				fill_actives.channel->name = logic_flashWriteName(argv[0]);
 
-	}
-	else
-	{
-		chprintf(chp, "kanal nic");
-	}
-}
+			}
+			else
+			{
+				chprintf(chp, "kanal nic");
+			}
+		}
 
-/**
- * @ingroup logic_channel
- */
+		/**
+		 * @ingroup logic_channel
+		 */
 void cmd_channel_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	uint8_t num = atoi(argv[1]);
@@ -333,51 +389,51 @@ static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
 			spec = temp;
 
 			//default setup
-			temp->delay.time = -1;
-			temp->delay.volume = -1;
+					temp->delay.time = -1;
+					temp->delay.volume = -1;
 
-			temp->harmonist.harmony = -1;
-			temp->harmonist.key = -1;
-			temp->harmonist.mode = -1;
-			temp->harmonist.volume = -1;
-		}
+					temp->harmonist.harmony = -1;
+					temp->harmonist.key = -1;
+					temp->harmonist.mode = -1;
+					temp->harmonist.volume = -1;
+				}
 
-		uint16_t num = atoi(argv[2]);
-		if (!strcmp(argv[0], "delay"))
-		{
-			if (!strcmp(argv[1], "volume"))
-				temp->delay.volume = num;
-			else if (!strcmp(argv[1], "time"))
-				temp->delay.time = num;
+				uint16_t num = atoi(argv[2]);
+				if (!strcmp(argv[0], "delay"))
+				{
+					if (!strcmp(argv[1], "volume"))
+					temp->delay.volume = num;
+					else if (!strcmp(argv[1], "time"))
+					temp->delay.time = num;
+				}
+				else if (!strcmp(argv[0], "harmonist"))
+				{
+					if (!strcmp(argv[1], "mode"))
+					temp->harmonist.mode = num;
+					else if (!strcmp(argv[1], "key"))
+					temp->harmonist.key = num;
+					else if (!strcmp(argv[1], "harmony"))
+					temp->harmonist.harmony = num;
+					else if (!strcmp(argv[1], "volume"))
+					temp->harmonist.volume = num;
+				}
+				else
+				{
+					chprintf(chp, "kanal special nic");
+				}
+			}
+			else
+			{
+				chprintf(chp, "kanal special nic");
+			}
 		}
-		else if (!strcmp(argv[0], "harmonist"))
-		{
-			if (!strcmp(argv[1], "mode"))
-				temp->harmonist.mode = num;
-			else if (!strcmp(argv[1], "key"))
-				temp->harmonist.key = num;
-			else if (!strcmp(argv[1], "harmony"))
-				temp->harmonist.harmony = num;
-			else if (!strcmp(argv[1], "volume"))
-				temp->harmonist.volume = num;
-		}
-		else
-		{
-			chprintf(chp, "kanal special nic");
-		}
-	}
-	else
-	{
-		chprintf(chp, "kanal special nic");
-	}
-}
-/*--------------------------------------------------------------------*
- * function commands
- *--------------------------------------------------------------------*/
+			/*--------------------------------------------------------------------*
+			 * function commands
+			 *--------------------------------------------------------------------*/
 
-/**
- * @ingroup logic_function
- */
+			/**
+			 * @ingroup logic_function
+			 */
 void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	logic_function_t * temp;
@@ -385,36 +441,36 @@ void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 	{
 		temp = alloc_function();
 		//inicializovat všechno na nuly a tak
-		fill_actives.function = temp;
-		fill_actives.bank->functionCount++;
+				fill_actives.function = temp;
+				fill_actives.bank->functionCount++;
 
-		temp->effects.w = EFF_NOTHING;
-		temp->marshall.effLoop = EFF_NOTHING;
-		temp->marshall.gain = 0;
-		temp->marshall.volume = 0;
-		temp->marshall.mute = EFF_NOTHING;
-		temp->marshall.high = EFF_NOTHING;
-		temp->name = NULL;
-		temp->special = NULL;
-		///nula znamená žádná podmínka afunguje dycky
-		temp->channelCondition = 0;
+				temp->effects.w = EFF_NOTHING;
+				temp->marshall.effLoop = EFF_NOTHING;
+				temp->marshall.gain = 0;
+				temp->marshall.volume = 0;
+				temp->marshall.mute = EFF_NOTHING;
+				temp->marshall.high = EFF_NOTHING;
+				temp->name = NULL;
+				temp->special = NULL;
+				///nula znamená žádná podmínka afunguje dycky
+				temp->channelCondition = 0;
 
-		if (fill_actives.bank->functions == NULL )
-			fill_actives.bank->functions = temp;
+				if (fill_actives.bank->functions == NULL )
+				fill_actives.bank->functions = temp;
 
-		//uložit jméno do flašky
-		fill_actives.function->name = logic_flashWriteName(argv[0]);
+				//uložit jméno do flašky
+				fill_actives.function->name = logic_flashWriteName(argv[0]);
 
-	}
-	else
-	{
-		chprintf(chp, "kanal nic");
-	}
-}
+			}
+			else
+			{
+				chprintf(chp, "kanal nic");
+			}
+		}
 
-/**
- * @ingroup logic_function
- */
+		/**
+		 * @ingroup logic_function
+		 */
 void cmd_function_effs(BaseSequentialStream *chp, int argc, char *argv[])
 {
 //přidat pak pomocny jména přimo efektů
@@ -552,33 +608,34 @@ void cmd_remapAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		fill_actives.bank->remapCount++;
 
 		if (fill_actives.bank->remaps == NULL )
-			fill_actives.bank->remaps = temp;
+		fill_actives.bank->remaps = temp;
 
 		//default values
-		temp->channelCondition = 0;
-		temp->ledBlinkColor = COL_NONE;
-		temp->name = NULL;
-		temp->ButtonName = NULL;
+				temp->channelCondition = 0;
+				temp->ledBlinkColor = COL_NONE;
+				temp->name = NULL;
+				temp->ButtonName = NULL;
 
-		temp->newCall.CallName = NULL;
-		temp->newCall.call = NULL;
+				temp->newCall.CallName = NULL;
+				temp->newCall.call = NULL;
+				temp->oldCall.call = NULL;
+				temp->oldCall.CallName = NULL;
 
-		//tyhle věci je potřeba vypočitat ze jmen před uloženim do flaš
-		temp->newCall.call = NULL;
-		temp->button.count = 0;
-		temp->button.pin = 0;
+				//tyhle věci je potřeba vypočitat ze jmen před uloženim do flaš
+				temp->button.count = 0;
+				temp->button.pin = 0;
 
-		fill_actives.remap->name = logic_flashWriteName(argv[0]);
+				fill_actives.remap->name = logic_flashWriteName(argv[0]);
 
-	}
-	else
-	{
-		chprintf(chp, "remap nic");
-	}
-}
-/**
- * @ingroup logic_remap
- */
+			}
+			else
+			{
+				chprintf(chp, "remap nic");
+			}
+		}
+		/**
+		 * @ingroup logic_remap
+		 */
 void cmd_remap_led(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc == 1)
@@ -636,7 +693,7 @@ void cmd_remap_setButtonName(BaseSequentialStream *chp, int argc, char *argv[])
 /**
  * @ingroup logic_remap
  */
-void cmd_remap_setCallName(BaseSequentialStream *chp, int argc, char *argv[])
+void cmd_remap_setNewCallName(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc == 1)
 	{
@@ -644,14 +701,20 @@ void cmd_remap_setCallName(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "remap jmeno tlacitka nic");
+		chprintf(chp, "remap jmeno nove fce nic");
 	}
 }
 
-static void _remap_setNewCall()
+void cmd_remap_setOldCallName(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	//vypočíst newcall adresu ze jména newcall
-	//vypočíst foot_t button ze jména tlačitka
+	if (argc == 1)
+	{
+		fill_actives.remap->oldCall.CallName = logic_flashWriteName(argv[0]);
+	}
+	else
+	{
+		chprintf(chp, "remap jmeno stare fce nic");
+	}
 }
 
 /*--------------------------------------------------------------------*
@@ -668,8 +731,8 @@ void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[])
 
 	if (argc == 3)
 	{
-		pushcount = atoi(argv[1]);
-		buttonNumber = atoi(argv[2]);
+		pushcount = atoi(argv[2]);
+		buttonNumber = atoi(argv[1]);
 
 		temp = alloc_button();
 		fill_actives.button = temp;
@@ -682,8 +745,9 @@ void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		temp->bit.hold = FALSE;
 		temp->bit.now = TRUE;
 		temp->calls = NULL;
+		temp->buttonCallCount = 0;
 
-		temp->button.pin = buttonNumber;
+		temp->button.pin = 1 << buttonNumber;
 		temp->button.count = pushcount;
 
 		temp->name = logic_flashWriteName(argv[0]);
@@ -756,15 +820,25 @@ void cmd_button_call(BaseSequentialStream *chp, int argc, char *argv[])
 	if (argc == 1)
 	{
 		temp = alloc_call();
+		fill_actives.button->buttonCallCount++;
 
 		if (fill_actives.button->calls == NULL )
+		{
 			fill_actives.button->calls = temp;
+		}
 
-		//zbytek struktury se dopočte až se bude ukládat do flašky
+		temp->call = NULL;
+
 		temp->CallName = logic_flashWriteName(argv[0]);
+		/*
+		 * zbytek struktury se dopočte až se bude ukládat do flašky
+		 */
+
 	}
 	else
 	{
 		chprintf(chp, "tlacitko call nic");
 	}
+
 }
+

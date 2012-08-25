@@ -41,6 +41,27 @@ void cmd_function_effs(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_function_prevCondition(BaseSequentialStream *chp, int argc,
 		char *argv[]);
 
+/**
+ * remap set of shell commands
+ */
+void cmd_remapAdd(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_remap_led(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_remap_prevCondition(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_remap_setButtonName(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_remap_setNewCallName(BaseSequentialStream *chp, int argc,
+		char *argv[]);
+void cmd_remap_setOldCallName(BaseSequentialStream *chp, int argc,
+		char *argv[]);
+
+/**
+ * button set of shell commands
+ */
+void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_button_hold(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_button_now(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_button_call(BaseSequentialStream *chp, int argc, char *argv[]);
+
+
 #ifdef __cplusplus
 }
 #endif
