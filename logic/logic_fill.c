@@ -118,11 +118,12 @@ static fill_temp_static_t * _fill_static;
  static MemoryHeap heap_calls;
  */
 
-extern uint8_t __heap_base__[];
-
+//extern uint8_t __heap_base__[];
 /* Private function prototypes -----------------------------------------------*/
 static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
 		logic_specific_t * spec);
+static void _effects_name(uint8_t * num, const char * arg, uint8_t mul);
+static void _led(const char * retezec, logic_ledColor_t * led);
 /* Private functions ---------------------------------------------------------*/
 
 /*
@@ -281,32 +282,33 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[])
 
 	if (argc == 1)
 	{
-		temp = alloc_channel();
 		//inicializovat všechno na nuly a tak
-				fill_actives.channel = temp;
-				temp->index = ++fill_actives.bank->channelCount;
+		temp = alloc_channel();
 
-				temp->effects.w = 0;
-				temp->marshall.effLoop = EFF_ENABLE;
-				temp->marshall.gain = 1;
-				temp->marshall.volume = 1;
-				temp->marshall.mute = EFF_DISABLE;
-				temp->marshall.high = EFF_ENABLE;
-				temp->name = NULL;
-				temp->special = NULL;
+		fill_actives.channel = temp;
+		temp->index = ++fill_actives.bank->channelCount;
 
-				if (fill_actives.bank->channels == NULL )
-				fill_actives.bank->channels = fill_actives.channel;
+		temp->effects.w = 0;
+		temp->marshall.effLoop = EFF_ENABLE;
+		temp->marshall.gain = 1;
+		temp->marshall.volume = 1;
+		temp->marshall.mute = EFF_DISABLE;
+		temp->marshall.high = EFF_ENABLE;
+		temp->name = NULL;
+		temp->special = NULL;
 
-				//uložit jméno do flašky
-				fill_actives.channel->name = logic_flashWriteName(argv[0]);
+		if (fill_actives.bank->channels == NULL )
+		fill_actives.bank->channels = fill_actives.channel;
 
-			}
-			else
-			{
-				chprintf(chp, "kanal nic");
-			}
-		}
+		/*uložit jméno do flašky*/
+		fill_actives.channel->name = logic_flashWriteName(argv[0]);
+
+	}
+	else
+	{
+		chprintf(chp, "kanal nic");
+	}
+}
 
 		/**
 		 * @ingroup logic_channel
@@ -357,6 +359,7 @@ void cmd_channel_effs(BaseSequentialStream *chp, int argc, char *argv[])
 	if (argc == 2)
 	{
 		uint8_t num = atoi(argv[0]);
+		_effects_name(&num, argv[0], 1);
 
 		if (fill_ifOn(argv[1]))
 			fill_actives.channel->effects.w |= 1 << num;
@@ -367,6 +370,36 @@ void cmd_channel_effs(BaseSequentialStream *chp, int argc, char *argv[])
 	{
 		chprintf(chp, "kanal efekty nic");
 	}
+}
+
+/**
+ * @ingroup logic_channel
+ */
+static void _effects_name(uint8_t * num, const char * arg, uint8_t mul)
+{
+	if (!strcmp(arg, "superdrive_true"))
+		*num = 0;
+	else if (!strcmp(arg, "wah"))
+		*num = 1 * mul;
+	else if (!strcmp(arg, "compresor"))
+		*num = 2 * mul;
+	else if (!strcmp(arg, "phaser"))
+		*num = 3 * mul;
+	else if (!strcmp(arg, "overdrive"))
+		*num = 4 * mul;
+	else if (!strcmp(arg, "chorus"))
+		*num = 5 * mul;
+	else if (!strcmp(arg, "detox"))
+		*num = 6 * mul;
+
+	else if (!strcmp(arg, "superdrive_norm"))
+		*num = 30 * mul;
+	else if (!strcmp(arg, "tuner"))
+		*num = 31 * mul;
+	else if (!strcmp(arg, "dd3"))
+		*num = 29 * mul;
+	else if (!strcmp(arg, "harmonist"))
+		*num = 28 * mul;
 }
 
 /**
@@ -454,6 +487,8 @@ void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 				temp->special = NULL;
 				///nula znamená žádná podmínka afunguje dycky
 				temp->channelCondition = 0;
+				temp->led = 0;
+				temp->watchEffect = 0;
 
 				if (fill_actives.bank->functions == NULL )
 				fill_actives.bank->functions = temp;
@@ -477,22 +512,23 @@ void cmd_function_effs(BaseSequentialStream *chp, int argc, char *argv[])
 	if (argc == 2)
 	{
 		uint8_t num = atoi(argv[0]);
+		_effects_name(&num, argv[0], 1);
 
 		if (fill_ifOn(argv[1]))
 		{
-			_set_dibit(fill_actives.channel->effects.w, num, EFF_ENABLE);
+			_set_dibit(fill_actives.function->effects.w, num, EFF_ENABLE);
 		}
 		else if (fill_ifOff(argv[1]))
 		{
-			_set_dibit(fill_actives.channel->effects.w, num, EFF_DISABLE);
+			_set_dibit(fill_actives.function->effects.w, num, EFF_DISABLE);
 		}
 		else if (fill_ifToggle(argv[1]))
 		{
-			_set_dibit(fill_actives.channel->effects.w, num, EFF_TOGGLE);
+			_set_dibit(fill_actives.function->effects.w, num, EFF_TOGGLE);
 		}
 		else
 		{
-			_set_dibit(fill_actives.channel->effects.w, num, EFF_NOTHING);
+			_set_dibit(fill_actives.function->effects.w, num, EFF_NOTHING);
 		}
 	}
 	else
@@ -501,6 +537,37 @@ void cmd_function_effs(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 }
 
+/**
+ * @ingroup logic_function
+ */
+void cmd_function_led(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 1)
+	{
+		_led(argv[0], &fill_actives.function->led);
+	}
+	else
+	{
+
+	}
+}
+/**
+ * @ingroup logic_function
+ */
+void cmd_function_watch(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 1)
+	{
+		uint8_t num = atoi(argv[0]);
+		_effects_name(&num, argv[0], 1);
+
+		fill_actives.function->watchEffect = num;
+	}
+	else
+	{
+
+	}
+}
 /**
  * @ingroup logic_function
  */
@@ -620,6 +687,7 @@ void cmd_remapAdd(BaseSequentialStream *chp, int argc, char *argv[])
 				temp->newCall.call = NULL;
 				temp->oldCall.call = NULL;
 				temp->oldCall.CallName = NULL;
+				temp->save = FALSE;
 
 				//tyhle věci je potřeba vypočitat ze jmen před uloženim do flaš
 				temp->button.count = 0;
@@ -640,22 +708,27 @@ void cmd_remap_led(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc == 1)
 	{
-		if (!strcmp(argv[0], "zelena"))
-		{
-			fill_actives.remap->ledBlinkColor = COL_GREEN;
-		}
-		else if (!strcmp(argv[0], "zluta"))
-		{
-			fill_actives.remap->ledBlinkColor = COL_YELLOW;
-		}
-		else if (!strcmp(argv[0], "obe"))
-		{
-			fill_actives.remap->ledBlinkColor = COL_BOTH;
-		}
+		_led(argv[0], &fill_actives.remap->ledBlinkColor);
 	}
 	else
 	{
 		chprintf(chp, "remap led nic");
+	}
+}
+
+static void _led(const char * retezec, logic_ledColor_t * led)
+{
+	if (!strcmp(retezec, "zelena"))
+	{
+		*led = COL_GREEN;
+	}
+	else if (!strcmp(retezec, "zluta"))
+	{
+		*led = COL_YELLOW;
+	}
+	else if (!strcmp(retezec, "obe"))
+	{
+		*led = COL_BOTH;
 	}
 }
 /**
@@ -704,7 +777,9 @@ void cmd_remap_setNewCallName(BaseSequentialStream *chp, int argc, char *argv[])
 		chprintf(chp, "remap jmeno nove fce nic");
 	}
 }
-
+/**
+ * @ingroup logic_remap
+ */
 void cmd_remap_setOldCallName(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc == 1)
@@ -715,6 +790,11 @@ void cmd_remap_setOldCallName(BaseSequentialStream *chp, int argc, char *argv[])
 	{
 		chprintf(chp, "remap jmeno stare fce nic");
 	}
+}
+
+void cmd_remap_save(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	fill_actives.remap->save = TRUE;
 }
 
 /*--------------------------------------------------------------------*
@@ -747,7 +827,7 @@ void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		temp->calls = NULL;
 		temp->buttonCallCount = 0;
 
-		temp->button.pin = 1 << buttonNumber;
+		temp->button.pin = 1 << (buttonNumber - 1);
 		temp->button.count = pushcount;
 
 		temp->name = logic_flashWriteName(argv[0]);

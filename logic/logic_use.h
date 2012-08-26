@@ -18,7 +18,6 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
-void logic_button(const logic_bank_t * bank, const foot_t * button);
 void logic_init(void);
 
 #ifdef __cplusplus

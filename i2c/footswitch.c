@@ -20,8 +20,8 @@
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 Thread * foot_thd;
-volatile foot_t footswitch;
-volatile foot_t foot_switch;
+static volatile foot_t footswitch;
+foot_t foot_switch;
 EVENTSOURCE_DECL(event_i2c_buttons);
 
 /* Private function prototypes -----------------------------------------------*/

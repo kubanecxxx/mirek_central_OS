@@ -55,8 +55,8 @@
 /*
  * GPIO switching crap
  */
-//#define SWITCHING_DEMO
-#define RS232_SHELL
+//#define SWITCHING_TEST
+//#define RS232_SHELL
 #define RELAY_SHELL
 
 /*

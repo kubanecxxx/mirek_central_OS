@@ -10,7 +10,8 @@
 #define SWITCH_LLD_H_
 
 #ifdef __cplusplus
-extern "C" {
+extern "C"
+{
 #endif
 
 /*
@@ -23,6 +24,11 @@ extern "C" {
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+/**
+ * @brief Počet relé
+ * @ingroup Relays
+ */
+#define RELAY_COUNT 15
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 bool_t switch_getRelay(uint8_t relay);

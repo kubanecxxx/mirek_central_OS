@@ -177,6 +177,8 @@ logic_buttonCall_t * logic_flashWriteAllButtonCalls(const logic_bank_t * bank,
 	return first;
 }
 
+static logic_buttonCall_t * logic_pointery[60];
+
 /**
  * @ingroup logic_buttons
  */
@@ -184,7 +186,9 @@ logic_button_t * logic_flashWriteButton(const logic_bank_t * bank,
 		logic_button_t * but)
 {
 	static uint32_t addr = FLASH_BUTTON_ADDRESS;
+	static logic_buttonCall_t * ramka = logic_pointery;
 	but->calls = logic_flashWriteAllButtonCalls(bank, but);
+	but->ramCalls = ramka++;
 
 	return logic_flashWrite(&addr, but, sizeof(logic_button_t));
 }
@@ -328,12 +332,12 @@ logic_remap_t * logic_flashWriteAllRemaps(logic_bank_t * bank)
 		{
 			remap_it = &bank->remaps[j];
 
-			if (!strcmp(newName, func_it->name))
+			if (!strcmp(newName, remap_it->name))
 			{
 				remap->newCall.callType = callType_remap;
 				remap->newCall.call = remap_it;
 			}
-			else if (!strcmp(oldName, func_it->name))
+			else if (!strcmp(oldName, remap_it->name))
 			{
 				remap->oldCall.callType = callType_remap;
 				remap->oldCall.call = remap_it;

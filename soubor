@@ -1,0 +1,65 @@
+//0 zlutej
+//1 wah
+//2 compresor
+//3 phaser
+//4 smrcka drive
+//5 chorus
+//6 detox 
+//28 harmonist
+//29 delay
+//30 drive
+//31 tuner
+
+open
+banka jednicka
+
+kanal cistej
+kan_marshall preamp 1
+kan_marshall volume 1
+kan_marshall smycka off
+kan_marshall mute off
+
+kanal crunch
+kan_marshall preamp 2
+kan_marshall volume 2
+kan_marshall smycka on
+kan_efekty detox on
+kan_efekty chorus on
+
+funkce delay
+fun_podminka 1
+fun_efekty 1 toggle
+
+funkce detx
+fun_podminka 2
+fun_efekty detox toggle
+fun_led zluta
+fun_watch detox
+
+funkce harm
+fun_podminka 2
+fun_efekty phaser toggle
+fun_led zelena
+fun_watch phaser
+
+tlacitko jedna 1 1
+tlac_nast cistej
+tlac_nast delay
+
+tlacitko dva 2 1
+tlac_nast crunch
+
+tlacitko tri 3 1
+tlac_nast detx
+
+tlacitko ctyri 4 1
+tlac_nast rem1
+
+remap rem1
+rem_tlacitko tri
+rem_novy harm
+rem_stary detx
+
+close
+
+

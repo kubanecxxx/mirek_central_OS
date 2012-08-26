@@ -29,11 +29,7 @@ typedef struct
 } switch_relay;
 
 /* Private define ------------------------------------------------------------*/
-/**
- * @brief Počet relé
- * @ingroup Relays
- */
-#define RELAY_COUNT 15
+
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 
@@ -141,6 +137,8 @@ void switch_setRelays(uint32_t _relays)
 			_switch_setRelay(i);
 		else
 			_switch_clearRelay(i);
+
+		_relays >>= 1;
 	}
 }
 
@@ -198,7 +196,7 @@ bool_t switch_getRelay(uint8_t relay)
 	return FALSE;
 }
 
-#ifdef SWITCHING_DEMO
+#ifdef SWITCHING_TEST
 /**
  * @brief demo ktery postupně problinke jedno réle po druhym
  * @ingroup Relays

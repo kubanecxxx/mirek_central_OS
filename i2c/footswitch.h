@@ -69,7 +69,7 @@ typedef struct
 #define BUTTON_EVENT_ID 1
 /* Exported macro ------------------------------------------------------------*/
 extern EventSource event_i2c_buttons;
-extern volatile foot_t foot_switch;
+extern foot_t foot_switch;
 
 #define foot_SetLedsYellow(data) _foot_SetLeds(PCA_LED_1_ADDRESS,data)
 #define foot_SetLedsGreen(data) _foot_SetLeds(PCA_LED_2_ADDRESS,data)
@@ -80,6 +80,9 @@ extern volatile foot_t foot_switch;
 
 #define foot_toggleYellow(inputs, number) foot_SetLedsYellow(inputs ^ (1 << number))
 #define foot_toggleGreen(inputs, number) foot_SetLedsGreen(inputs ^ (1<<number))
+
+#define foot_toggleYellowMask(inputs, mask) foot_SetLedsYellow(inputs ^ (mask))
+#define foot_toggleGreenMask(inputs, mask) foot_SetLedsGreen(inputs ^ (mask))
 
 /**
  * @}

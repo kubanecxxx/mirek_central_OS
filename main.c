@@ -34,6 +34,7 @@
 #include "rs232.h"
 #include "switch_master.h"
 #include "logic_use_test.h"
+#include "logic_use.h"
 
 /*
  * external interrupt system config
@@ -81,12 +82,7 @@ int main(void)
 	halInit();
 	chSysInit();
 
-	test_logic_fill();
-
-	/*
-	 * start shell for RS232 - communication with marshall
-	 */
-	serial_init();
+	//test_logic_fill();
 
 	/*
 	 * Activates the USB driver and then the USB bus pull-up on D+.
@@ -108,16 +104,9 @@ int main(void)
 	palSetPad(GPIOD, 12);
 
 	/**
-	 * @brief init I2C1, make i2c1 thread
+	 * @brief start the whole bad thing
 	 */
-#ifdef I2C_MODULE
-	i2c1_init();
-#endif
-
-	/**
-	 * @brief init gpio for relay switching and optocouplers watching
-	 */
-	switch_masterGpioInit();
+	logic_init();
 
 	/*
 	 * start external interrupt system

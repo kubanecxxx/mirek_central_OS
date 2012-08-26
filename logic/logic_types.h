@@ -102,8 +102,17 @@ typedef union
  */
 typedef enum
 {
-	EFF_ENABLE, EFF_DISABLE, EFF_TOGGLE, EFF_NOTHING
+	EFF_ENABLE = 3, EFF_DISABLE = 2, EFF_TOGGLE = 1, EFF_NOTHING = 0
 } logic_effect_t;
+
+/**
+ * @brief barva ledky která bude blikat podle mapování na tlačítka
+ * @ingroup LOGIC
+ */
+typedef enum
+{
+	COL_NONE = 0, COL_YELLOW = 1, COL_GREEN = 2, COL_BOTH = 3
+} logic_ledColor_t;
 
 /**
  * @brief nastavení efektů ve funkcích po dvojbitech/cely slovo
@@ -237,6 +246,8 @@ typedef struct
 	uint8_t channelCondition;
 	logic_specific_t * special;
 	logic_marshall_t marshall;
+	logic_ledColor_t led;
+	uint8_t watchEffect;
 
 } logic_function_t;
 
@@ -285,6 +296,7 @@ typedef struct
 	uint8_t buttonCallCount;
 	///sada pointrů
 	logic_buttonCall_t * calls;
+	logic_buttonCall_t ** ramCalls;
 	struct
 	{
 		///jesli se má reagovat na mačkání nebo jenom po dobu držení
@@ -293,15 +305,6 @@ typedef struct
 		bool_t now :1;
 	} bit;
 } logic_button_t;
-
-/**
- * @brief barva ledky která bude blikat podle mapování na tlačítka
- * @ingroup LOGIC
- */
-typedef enum
-{
-	COL_NONE, COL_YELLOW, COL_GREEN, COL_BOTH
-} logic_ledColor_t;
 
 /**
  * @brief struktura pro blikání ledkou podle mapování ve vlákně
@@ -336,6 +339,8 @@ typedef struct
 	///interně si vypočte před záspisem do flašky přesně argument a jeho typ
 	logic_buttonCall_t newCall;
 	logic_buttonCall_t oldCall;
+	//todo přidat podporu uložení při změně v kanále
+	bool_t save;
 } logic_remap_t;
 
 /**

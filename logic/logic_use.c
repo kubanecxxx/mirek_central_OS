@@ -14,7 +14,8 @@
 #include "i2c_user.h"
 #include "rs232.h"
 #include "logic_use.h"
-
+#include "logic_flash.h"
+#include "string.h"
 
 /* Private typedef -----------------------------------------------------------*/
 typedef struct
@@ -28,29 +29,121 @@ typedef struct
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 WORKING_AREA(wa_blinking, 256);
+WORKING_AREA(wa_scan, 512);
+static logic_base_t * base = (logic_base_t *) FLASH_BASE_ADDRESS;
+static logic_active_t active;
 
-logic_active_t active;
 /* Private function prototypes -----------------------------------------------*/
 static void logic_specific(const logic_specific_t * arg);
 static void logic_blinkingThread(void * data);
+static void logic_scanThread(void * data);
 static void logic_marshallSetup(const logic_marshall_t * marsh);
+static void logic_button(const logic_bank_t * bank, const foot_t * button);
+static void logic_channel(const logic_channel_t * arg,
+		const logic_button_t * but);
 
 /* Private functions ---------------------------------------------------------*/
 void logic_init(void)
 {
-	//dohodit sadu inicializací i2c,gpio,opto,serial
+	/*
+	 * start shell for RS232 - communication with marshall
+	 */
+	serial_init();
 
-	//switch_masterGpioInit();
+	/**
+	 * @brief init gpio for relay switching and optocouplers watching
+	 */
+	switch_masterGpioInit();
 
-	active.bank = NULL;
+	/**
+	 * @brief init I2C1, make i2c1 thread
+	 */
+	i2c1_init();
+
+	if ((base->bankCount == 0)
+			&& (base->banks != (logic_bank_t *) FLASH_BANK_ADDRESS))
+	{
+		return;
+
+	}
+
+	active.bank = base->banks;
+
+	//nastavit první kanál
+	if (active.bank->channels != NULL )
+		logic_channel(active.bank->channels, NULL );
 	//inicializovat aktivni
-
-	// todo zajistit aby věci byly v ramce co maji byt
-
 	//počáteční init efektů
 
-	chThdCreateStatic(&wa_blinking, sizeof(wa_blinking), NORMALPRIO,
-			(tfunc_t) logic_blinkingThread, NULL );
+	chThdCreateStatic(&wa_scan, sizeof(wa_scan), NORMALPRIO,
+			(tfunc_t) (logic_scanThread), NULL );
+
+//	chThdCreateStatic(&wa_blinking, sizeof(wa_blinking), NORMALPRIO,
+//			(tfunc_t) logic_blinkingThread, NULL );
+}
+
+static void logic_scanThread(void * data)
+{
+	(void) data;
+
+	EventListener el;
+	chEvtRegister(&event_i2c_buttons, &el, BUTTON_EVENT_ID);
+
+	while (TRUE)
+	{
+		chEvtWaitAny(BUTTON_EVENT_ID);
+		logic_button(active.bank, &foot_switch);
+	}
+}
+
+static void logic_functionLeds(const logic_function_t * arg, uint16_t pin)
+{
+	logic_ledColor_t coun = arg->led;
+	uint16_t green = 0;
+	uint16_t yellow = 0;
+	if (coun != COL_NONE)
+	{
+		uint8_t yellow_i = foot_getLedsYellow();
+		uint8_t green_i = foot_getLedsGreen();
+		if (coun == COL_GREEN)
+			green = pin;
+		else if (coun == COL_YELLOW)
+			yellow = pin;
+		else if (coun == COL_BOTH)
+		{
+			yellow = pin;
+			green = pin;
+		}
+
+		bool_t watcha = FALSE;
+		if (arg->watchEffect < RELAY_COUNT)
+		{
+			watcha = switch_getRelay(arg->watchEffect);
+		}
+		else if (arg->watchEffect == 28)
+		{
+			uint8_t temp = harm_getInputs();
+			watcha = harm_getInput_LED(temp);
+		}
+		else if (arg->watchEffect == 29)
+		{
+			watcha = delay_get();
+		}
+		else if (arg->watchEffect == 30 || arg->watchEffect == 31)
+		{
+			watcha = opto_getEffect(arg->watchEffect);
+		}
+
+		if (watcha == TRUE)
+		{
+			foot_SetLedsBoth(yellow_i | yellow, green_i | green);
+		}
+		else
+		{
+			foot_SetLedsBoth(yellow_i & (~yellow), green_i & (~green));
+		}
+	}
+
 }
 
 /**
@@ -63,7 +156,8 @@ void logic_init(void)
  * @ingroup LOGIC_HL
  *
  */
-static void logic_function(const logic_function_t * arg)
+static void logic_function(const logic_function_t * arg,
+		const logic_button_t * but)
 {
 	//I2C effects 28 - harmonist ,29 - delay
 	uint64_t temp = arg->effects.w;
@@ -119,9 +213,12 @@ static void logic_function(const logic_function_t * arg)
 	else if (temp_i2c.s.eff29 == EFF_TOGGLE)
 		delay_toggle();
 
-	active.activeFunctions[active.count++] = arg;
+	//active.activeFunctions[active.count++] = arg;
 
 	logic_marshallSetup(&arg->marshall);
+
+	//leds
+	logic_functionLeds(arg, but->button.pin);
 }
 
 /**
@@ -133,7 +230,8 @@ static void logic_function(const logic_function_t * arg)
  * @param[in] channel setup
  * @ingroup LOGIC_HL
  */
-static void logic_channel(const logic_channel_t * arg)
+static void logic_channel(const logic_channel_t * arg,
+		const logic_button_t * but)
 {
 	uint32_t temp = arg->effects.w;
 	//I2C bits 28 - harmonist ,29 - delay
@@ -142,6 +240,25 @@ static void logic_channel(const logic_channel_t * arg)
 	uint8_t temp_opto = (temp >> 30) & 0b11;
 	temp &= 0x0FFFFFFF;
 
+	uint16_t pin = but->button.pin;
+	uint16_t coun = but->button.count;
+	uint16_t green = 0;
+	uint16_t yellow = 0;
+
+	//leds
+	if (coun == COL_YELLOW)
+		yellow = pin;
+	else if (coun == COL_GREEN)
+		green = pin;
+	else if (coun == COL_BOTH)
+	{
+		yellow = pin;
+		green = pin;
+	}
+
+	foot_SetLedsBoth(yellow, green);
+
+	//setup delay and harmonist
 	logic_specific(arg->special);
 
 	//relays
@@ -201,16 +318,84 @@ static void logic_marshallSetup(const logic_marshall_t * marsh)
 
 /**
  * @brief přemapuje jedno volání
- * @todo todo musi se zajistit aby calls byly v ramce
- * @note musí se zajistit aby calls byly v ramce...
  */
-static void logic_remap(const logic_remap_t * arg)
+static void logic_remap(const logic_bank_t * bank, const logic_remap_t * remap,
+		bool_t zpatky)
 {
-	//uint8_t remapIndex = arg->remapIndex;
-	//hodit mu sem remap a tlačitko, index už si bude muset vypočtitat sám
+	logic_button_t * but = NULL;
+	logic_buttonCall_t * temp;
 
-	//arg->button->calls[remapIndex] = arg->newCall;
-	//napsat to na přehazování podle ména
+	if (zpatky == TRUE && remap->save == TRUE)
+		return;
+
+	//najít *but podle jména
+	uint8_t j;
+	for (j = 0; j < bank->buttonCount; j++)
+	{
+		if (!strcmp(bank->buttons[j].name, remap->ButtonName))
+		{
+			but = &bank->buttons[j];
+			break;
+		}
+	}
+
+	//tlačítko není
+	if (but == NULL )
+		return;
+
+	if (*(but->ramCalls) == NULL )
+	{
+		temp = (logic_buttonCall_t *) chCoreAlloc(
+				but->buttonCallCount * sizeof(logic_buttonCall_t));
+		*(but->ramCalls) = temp;
+
+		//naládovat to tam z flašky
+		uint8_t i;
+		uint8_t cant = but->buttonCallCount;
+		for (i = 0; i < cant; i++)
+		{
+			temp[i].CallName = but->calls[i].CallName;
+			temp[i].call = but->calls[i].call;
+			temp[i].callType = but->calls[i].callType;
+		}
+	}
+	else
+	{
+		temp = *(but->ramCalls);
+	}
+
+	uint8_t idx;
+	uint8_t i;
+	bool_t back;
+
+	for (i = 0; i < but->buttonCallCount; i++)
+	{
+		if (!strcmp(temp[i].CallName, remap->newCall.CallName))
+		{
+			idx = i;
+			back = TRUE;
+			break;
+		}
+		else if (!strcmp(temp[i].CallName, remap->oldCall.CallName))
+		{
+			idx = i;
+			back = FALSE;
+			break;
+		}
+	}
+
+	if (zpatky == TRUE)
+		back = TRUE;
+
+	const logic_buttonCall_t * call;
+	if (back == FALSE)
+		call = &remap->newCall;
+	else
+		call = &remap->oldCall;
+
+	temp[idx].call = call->call;
+	temp[idx].CallName = call->CallName;
+	temp[idx].callType = call->callType;
 }
 
 /**
@@ -236,14 +421,15 @@ static void logic_specific(const logic_specific_t * arg)
  * @brief zavolá všechny volání od tlačitka
  * @todo todo dodělat podporu pro hold - bude lepši při volání podle typu eventu
  * @todo todo dodělat podporu pro okamžitě sepnout  a čekat - taky podle typu eventu
+ * @todo todo domyslet přemapování zpátky při změně kanálu
  *
  * @ingroup LOGIC_HL
  */
-void logic_button(const logic_bank_t * bank, const foot_t * button)
+static void logic_button(const logic_bank_t * bank, const foot_t * button)
 {
-	active.bank = bank;
-	//tohle bude volat funkce above
-	//volání bude probihat někde v samostatnym vlákně
+//tohle bude volat funkce above
+//volání bude probihat někde v samostatnym vlákně
+	static logic_remap_t * lastRemap;
 	logic_button_t * but;
 	uint8_t prevChannel = active.activeChannel;
 
@@ -251,19 +437,20 @@ void logic_button(const logic_bank_t * bank, const foot_t * button)
 
 	uint8_t i;
 
-	//prvni musi najit button podle čisla a počtu zmačknuti
+//prvni musi najit button podle čisla a počtu zmačknuti
 	for (i = 0; i < bank->buttonCount; i++)
 	{
 		but = &bank->buttons[i];
 
-		if (but->button.pin == button->pin && but->button.count == button->count )
+		if (but->button.pin == button->pin
+				&& but->button.count == button->count)
 		{
 			break;
 		}
 		but = NULL;
 	}
 
-	//žádnej neni mapovanej
+//žádnej neni mapovanej
 	if (but == NULL )
 		return;
 
@@ -274,27 +461,64 @@ void logic_button(const logic_bank_t * bank, const foot_t * button)
 
 	for (i = 0; i < but->buttonCallCount; i++)
 	{
-		call = &(but->calls[i]);
+		/*vyhrabat to prvni z ramky kvuli přemapování*/
+		logic_buttonCall_t * tmp = *(but->ramCalls);
+		if (tmp == NULL )
+			call = &(but->calls[i]);
+		else
+			call = tmp;
 
 		if (call->callType == callType_channel)
 		{
+			logic_remap(bank, lastRemap, TRUE);
 			channel = (logic_channel_t *) call->call;
-			logic_channel(channel);
+			logic_channel(channel, but);
 			active.activeChannel = channel->index;
+			//prohledat všecky funkce + tlačitka a nastavit podle toho ledky z funkcí
+			uint8_t j, k, l;
+			logic_function_t * _func;
+			logic_button_t * _but;
+			logic_buttonCall_t * _call;
+			for (j = 0; j < bank->functionCount; j++)
+			{
+				_func = &bank->functions[j];
+
+				if (_func->led != COL_NONE
+						&& (_func->channelCondition == channel->index
+								|| _func->channelCondition == 0))
+				{
+					for (k = 0; k < bank->buttonCount; k++)
+					{
+						_but = &bank->buttons[k];
+						for (l = 0; l < _but->buttonCallCount; l++)
+						{
+							_call = &_but->calls[l];
+							if (!strcmp(_call->CallName, _func->name))
+							{
+								logic_functionLeds(_func, _but->button.pin);
+							}
+						}
+					}
+				}
+			}
 		}
 		else if (call->callType == callType_function)
 		{
 			func = (logic_function_t *) call->call;
 			if (func->channelCondition == prevChannel
 					|| func->channelCondition == 0)
-				logic_function(func);
+				logic_function(func, but);
 		}
 		else if (call->callType == callType_remap)
 		{
 			remap = (logic_remap_t *) call->call;
 			if (remap->channelCondition == prevChannel
 					|| remap->channelCondition == 0)
-				logic_remap(remap);
+			{
+				logic_remap(bank, remap, FALSE);
+				lastRemap = remap;
+			}
+
 		}
 	}
 }
@@ -352,7 +576,7 @@ static void logic_blinkingThread(void * data)
 						//	if (active)
 						{
 							pole[k].ledColor = remap->ledBlinkColor;
-						//	pole[k].ledNumber = active.bank->buttons[i].number;
+							//	pole[k].ledNumber = active.bank->buttons[i].number;
 							k++;
 						}
 					}
@@ -363,7 +587,7 @@ static void logic_blinkingThread(void * data)
 		yellow = foot_getLedsYellow();
 		green = foot_getLedsGreen();
 
-		//toggle all user defined extracted leds
+//toggle all user defined extracted leds
 		while (k)
 		{
 			if (pole[k - 1].ledColor == COL_GREEN)
