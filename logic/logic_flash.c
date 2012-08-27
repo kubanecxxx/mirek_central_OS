@@ -177,7 +177,7 @@ logic_buttonCall_t * logic_flashWriteAllButtonCalls(const logic_bank_t * bank,
 	return first;
 }
 
-static logic_buttonCall_t * logic_pointery[60];
+static logic_buttonCall_t * logic_pointery[60] __attribute__ ((section (".fixed")));
 
 /**
  * @ingroup logic_buttons

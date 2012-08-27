@@ -52,13 +52,30 @@ tlac_nast crunch
 tlacitko tri 3 1
 tlac_nast detx
 
-tlacitko ctyri 4 1
+tlacitko ctyri 4 2
 tlac_nast rem1
+tlac_nast rem2
+tlac_nast detx2
 
 remap rem1
 rem_tlacitko tri
 rem_novy harm
 rem_stary detx
+
+remap rem2
+rem_tlacitko ctyri
+rem_novy harm2
+rem_stary detx2
+
+funkce harm2
+fun_podminka 2
+fun_efekty phaser on
+fun_efekty detox off
+
+funkce detx2
+fun_podminka 2
+fun_efekty phaser off
+fun_efekty detox on
 
 close
 

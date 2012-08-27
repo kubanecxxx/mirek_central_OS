@@ -169,21 +169,39 @@ static void _led(const char * retezec, logic_ledColor_t * led);
  * @brief nic
  * @ingroup logic_shell
  */
+
+extern Thread * thd_logic_scan;
+extern Thread * thd_logic_blinking;
+
 void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	(void) chp;
 	(void) argc;
 	(void) argv;
 
+	//zastavit potřebny vlákna
+	if (thd_logic_blinking != NULL )
+	{
+		chThdTerminate(thd_logic_blinking);
+		while (!chThdTerminated(thd_logic_blinking))
+			;
+	}
+	/*if (thd_logic_scan)
+	 {
+	 chThdTerminate(thd_logic_scan);
+	 while (!chThdTerminated(thd_logic_scan))
+	 ;
+	 }*/
+
 	uint32_t temp;
-	//smazat flašku a připravit pro zápis
+//smazat flašku a připravit pro zápis
 	logic_flashErase(FLASH_ADDRESS_START, FLASH_ADDRESS_STOP );
 
 	temp = chCoreStatus();
 	_fill_static = chCoreAlloc(sizeof(fill_temp_static_t));
 	temp = chCoreStatus();
 
-	//vymazat cache
+//vymazat cache
 	fill_actives.base.bankCount = 0;
 	fill_actives.base.banks = NULL;
 	fill_actives.bank = NULL;
@@ -203,16 +221,17 @@ void cmd_closeLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	(void) argc;
 	(void) argv;
 
-	//uložit posledni banku
+//uložit posledni banku
 	logic_flashWriteBank(fill_actives.bank);
 
-	//uložit sadu bank na předem známou adresu
+//uložit sadu bank na předem známou adresu
 	logic_flashWriteBase(&fill_actives.base);
 
-	//todo uvolnit paměť
+//todo uvolnit paměť
 
 	if (chp != NULL )
 		chprintf(chp, "Okej");
+
 }
 
 /**

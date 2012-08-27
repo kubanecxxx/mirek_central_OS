@@ -308,7 +308,9 @@ static void usb_user_thread(void * nic)
 	while (TRUE)
 	{
 		if (!shelltp && (SDU1.config->usbp->state == USB_ACTIVE))
+		{
 			shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+		}
 		else if (chThdTerminated(shelltp))
 		{
 			chThdRelease(shelltp); /* Recovers memory of the previous shell.   */
@@ -325,7 +327,7 @@ void usb_user_init(void)
 	shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
 #else
 	usbDisconnectBus(serusbcfg.usbp);
-	chThdCreateStatic(&wa_usb_user, sizeof(wa_usb_user), LOWPRIO,
+	chThdCreateStatic(&wa_usb_user, sizeof(wa_usb_user), NORMALPRIO,
 			usb_user_thread, NULL );
 #endif
 }
