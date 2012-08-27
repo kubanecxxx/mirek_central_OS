@@ -219,6 +219,9 @@ static void logic_function(const logic_function_t * arg,
 
 	//leds
 	logic_functionLeds(arg, but->button.pin);
+
+	//save active function
+	active.activeFunctions[active.count++] = arg;
 }
 
 /**
@@ -421,7 +424,6 @@ static void logic_specific(const logic_specific_t * arg)
  * @brief zavolá všechny volání od tlačitka
  * @todo todo dodělat podporu pro hold - bude lepši při volání podle typu eventu
  * @todo todo dodělat podporu pro okamžitě sepnout  a čekat - taky podle typu eventu
- * @todo todo domyslet přemapování zpátky při změně kanálu
  *
  * @ingroup LOGIC_HL
  */
@@ -482,7 +484,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button)
 			for (j = 0; j < bank->functionCount; j++)
 			{
 				_func = &bank->functions[j];
-
+//todo tohle by šlo vypočitat při ukládání a pak už to jenom vzít
 				if (_func->led != COL_NONE
 						&& (_func->channelCondition == channel->index
 								|| _func->channelCondition == 0))
@@ -539,6 +541,7 @@ static void logic_blinkingThread(void * data)
 	 * v každym najit přemapování
 	 * z každyho přemapování vytáhnout ledky
 	 * blikat ledkama ktery nejsou COL_NONE
+	 * pokud funkce není aktivní
 	 */
 
 	uint8_t i, j;
@@ -565,19 +568,31 @@ static void logic_blinkingThread(void * data)
 		{
 			for (j = 0; j < mapcount; j++)
 			{
-				if (active.bank->buttons[i].calls[j].callType == callType_remap)
+				//všechny mapovany remapy
+				logic_buttonCall_t * call = *(active.bank->buttons[i].ramCalls);
+				if (call == NULL )
+				{
+					call = active.bank->buttons[i].calls;
+				}
+				if (call[j].callType == callType_remap)
 				{
 					remap =
 							(logic_remap_t *) active.bank->buttons[i].calls[j].call;
-					if (remap->ledBlinkColor != COL_NONE)
+					//maji zaplou barvičku, a splňujo podminku kanálu
+					if (remap->ledBlinkColor != COL_NONE
+							&& remap->channelCondition == active.activeChannel)
 					{
 						//pokud je fce aktivní tak to musi zahodit
 						//prohledat active jesli náhodou se ointery nerovnaji
-						//	if (active)
+						uint8_t l;
+						for (l = 0; l < active.count; l++)
 						{
-							pole[k].ledColor = remap->ledBlinkColor;
-							//	pole[k].ledNumber = active.bank->buttons[i].number;
-							k++;
+							if (strcmp(active.activeFunctions[k]->name,
+									remap->name))
+							{
+								pole[k].ledColor = remap->ledBlinkColor;
+								k++;
+							}
 						}
 					}
 				}
@@ -590,17 +605,16 @@ static void logic_blinkingThread(void * data)
 //toggle all user defined extracted leds
 		while (k)
 		{
-			if (pole[k - 1].ledColor == COL_GREEN)
-				green ^= (1 << pole[k - 1].ledNumber);
-			else if (pole[k - 1].ledColor == COL_YELLOW)
-				yellow ^= (1 << pole[k - 1].ledNumber);
+			k--;
+			if (pole[k].ledColor == COL_GREEN)
+				green ^= (1 << pole[k].ledNumber);
+			else if (pole[k].ledColor == COL_YELLOW)
+				yellow ^= (1 << pole[k].ledNumber);
 			else //both colors
 			{
-				yellow ^= (1 << pole[k - 1].ledNumber);
-				green ^= (1 << pole[k - 1].ledNumber);
+				yellow ^= (1 << pole[k].ledNumber);
+				green ^= (1 << pole[k].ledNumber);
 			}
-
-			k--;
 		}
 
 		foot_SetLedsBoth(yellow, green);
