@@ -72,6 +72,7 @@ include $(CHIBIOS)/os/ports/GCC/ARMCMx/STM32F4xx/port.mk
 include $(CHIBIOS)/os/kernel/kernel.mk
 include $(CHIBIOS)/test/test.mk
 
+
 include i2c/i2c_user.mk
 include usb/usb_user.mk
 include touch/touch.mk
@@ -79,6 +80,7 @@ include touch/touch.mk
 include rs232/serial.mk
 include switching/switch.mk
 include logic/logic.mk
+include gui/gui.mk
 
 # Define linker script file here
 LDSCRIPT= $(PORTLD)/STM32F407xG.ld

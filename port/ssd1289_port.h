@@ -15,6 +15,7 @@ extern "C"
 
 #include "ch.h"
 #include "hal.h"
+#include "ssd1289/ssd1289_lld.h"
 
 //Public prototypes
 void ssd1289_low_level_init(void);
