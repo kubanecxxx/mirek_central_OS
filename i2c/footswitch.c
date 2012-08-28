@@ -28,6 +28,7 @@ EVENTSOURCE_DECL(event_i2c_buttons);
 static WORKING_AREA(wa_i2c_receive_thread,256);
 static void i2c_receive_thread(void * data) __attribute__ ((noreturn));
 static void timeout_cb(void * data);
+static uint8_t preprcat(uint8_t data);
 /* Private functions ---------------------------------------------------------*/
 
 /*
@@ -92,15 +93,7 @@ static void timeout_cb(void * data)
 
 	uint16_t temp = 0;
 
-	//bit swap - wrong soldering ...
-	temp |= (footswitch.pin & 0b00100000) << 1;
-	temp |= (footswitch.pin & 0b01000000) >> 6;
-	temp |= (footswitch.pin & 0b00000001) << 2;
-	temp |= (footswitch.pin & 0b00000010) << 2;
-	temp |= (footswitch.pin & 0b00000100) << 2;
-	temp |= (footswitch.pin & 0b00001000) << 2;
-	temp |= (footswitch.pin & 0b10000000) >> 6;
-	temp |= (footswitch.pin & 0b00010000) << 3;
+	temp = preprcat(footswitch.pin);
 
 	foot_switch.count = footswitch.count;
 	foot_switch.pin = temp;
@@ -159,17 +152,41 @@ static void i2c_receive_thread(void * data)
 				footswitch.pin = rxbuf[0];
 				footswitch.count++;
 			}
+			uint8_t temp = preprcat(footswitch.pin);
+
+			foot_switch.count = footswitch.count;
+			foot_switch.pin = temp;
+			chEvtBroadcastFlags(&event_i2c_buttons, BUTTON_NOW_EVENT_ID);
 		}
 	}
 }
 
 static void glitch(void * data)
 {
+
 	chSysLockFromIsr()
 	;
 	extChannelEnableI(data, 15);
+
 	chSysUnlockFromIsr()
 	;
+
+}
+
+static uint8_t preprcat(uint8_t data)
+{
+	uint8_t temp = 0;
+	//bit swap - wrong soldering ...
+	temp |= (data & 0b00100000) << 1;
+	temp |= (data & 0b01000000) >> 6;
+	temp |= (data & 0b00000001) << 2;
+	temp |= (data & 0b00000010) << 2;
+	temp |= (data & 0b00000100) << 2;
+	temp |= (data & 0b00001000) << 2;
+	temp |= (data & 0b10000000) >> 6;
+	temp |= (data & 0b00010000) << 3;
+
+	return temp;
 }
 
 /**

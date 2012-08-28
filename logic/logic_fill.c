@@ -842,7 +842,7 @@ void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[])
 
 		//default values
 		temp->bit.hold = FALSE;
-		temp->bit.now = TRUE;
+		temp->bit.now = FALSE;
 		temp->calls = NULL;
 		temp->buttonCallCount = 0;
 

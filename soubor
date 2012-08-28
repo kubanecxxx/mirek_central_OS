@@ -56,6 +56,7 @@ tlacitko ctyri 4 2
 tlac_nast rem1
 tlac_nast rem2
 tlac_nast detx2
+tlac_hned hned
 
 remap rem1
 rem_tlacitko tri

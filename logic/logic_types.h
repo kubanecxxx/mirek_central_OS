@@ -300,9 +300,9 @@ typedef struct
 	struct
 	{
 		///jesli se má reagovat na mačkání nebo jenom po dobu držení
-		bool_t hold :1;
+		bool_t hold :2;
 		///jesli má reagovat hned nebo až po limitu
-		bool_t now :1;
+		bool_t now :2;
 	} bit;
 } logic_button_t;
 

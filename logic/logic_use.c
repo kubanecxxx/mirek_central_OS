@@ -36,7 +36,8 @@ static void logic_specific(const logic_specific_t * arg);
 static void logic_blinkingThread(void * data);
 static void logic_scanThread(void * data);
 static void logic_marshallSetup(const logic_marshall_t * marsh);
-static void logic_button(const logic_bank_t * bank, const foot_t * button);
+static void logic_button(const logic_bank_t * bank, const foot_t * button,
+		eventmask_t mask);
 static void logic_channel(const logic_channel_t * arg,
 		const logic_button_t * but);
 
@@ -78,7 +79,7 @@ void logic_init(void)
 			(tfunc_t) (logic_scanThread), NULL );
 
 	thd_logic_blinking = chThdCreateStatic(&wa_blinking, sizeof(wa_blinking),
-			NORMALPRIO + 1, (tfunc_t) logic_blinkingThread, NULL );
+			NORMALPRIO - 1, (tfunc_t) logic_blinkingThread, NULL );
 }
 
 static void logic_scanThread(void * data)
@@ -86,12 +87,15 @@ static void logic_scanThread(void * data)
 	(void) data;
 
 	EventListener el;
-	chEvtRegister(&event_i2c_buttons, &el, BUTTON_EVENT_ID);
+	chEvtRegister(&event_i2c_buttons, &el,
+			BUTTON_EVENT_ID | BUTTON_NOW_EVENT_ID);
+
+	eventmask_t mask;
 
 	while (TRUE)
 	{
-		chEvtWaitAny(BUTTON_EVENT_ID);
-		logic_button(active.bank, &foot_switch);
+		mask = chEvtWaitAny(BUTTON_NOW_EVENT_ID | BUTTON_EVENT_ID);
+		logic_button(active.bank, &foot_switch, mask);
 	}
 }
 
@@ -282,6 +286,8 @@ static void logic_channel(const logic_channel_t * arg,
 		delay_off();
 
 	logic_marshallSetup(&arg->marshall);
+
+	logic_channelLeds(but->button.pin, but->button.count);
 }
 
 /**
@@ -426,7 +432,8 @@ static void logic_specific(const logic_specific_t * arg)
  *
  * @ingroup LOGIC_HL
  */
-static void logic_button(const logic_bank_t * bank, const foot_t * button)
+static void logic_button(const logic_bank_t * bank, const foot_t * button,
+		eventmask_t mask)
 {
 	static logic_remap_t * lastRemap[10];
 	static uint8_t remap_count = 0;
@@ -450,6 +457,10 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button)
 //žádnej neni mapovanej
 	if (but == NULL )
 		return;
+
+	if (((but->bit.now == FALSE) && (mask & BUTTON_NOW_EVENT_ID))
+			|| ((but->bit.now == TRUE)&& (mask &BUTTON_EVENT_ID)))
+			return;
 
 	logic_buttonCall_t * call;
 	logic_channel_t * channel;

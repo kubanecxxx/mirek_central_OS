@@ -66,7 +66,8 @@ typedef struct
 /*
  * buttons event ID
  */
-#define BUTTON_EVENT_ID 1
+#define BUTTON_EVENT_ID 0b01
+#define BUTTON_NOW_EVENT_ID 0b10
 /* Exported macro ------------------------------------------------------------*/
 extern EventSource event_i2c_buttons;
 extern foot_t foot_switch;
