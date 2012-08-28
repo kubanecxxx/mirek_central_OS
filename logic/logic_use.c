@@ -427,8 +427,6 @@ static void logic_specific(const logic_specific_t * arg)
 
 /**
  * @brief zavolá všechny volání od tlačitka
- * @todo todo dodělat podporu pro hold - bude lepši při volání podle typu eventu
- * @todo todo dodělat podporu pro okamžitě sepnout  a čekat - taky podle typu eventu
  *
  * @ingroup LOGIC_HL
  */

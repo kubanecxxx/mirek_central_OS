@@ -35,6 +35,7 @@
 #include "switch_master.h"
 #include "logic_use_test.h"
 #include "logic_use.h"
+#include "logic_types.h"
 
 /*
  * external interrupt system config
@@ -66,6 +67,8 @@ static const EXTConfig extcfg =
 { EXT_CH_MODE_DISABLED, NULL },
 { EXT_CH_MODE_DISABLED, NULL } } };
 
+extern logic_buttonCall_t * logic_pointery[60] ;
+
 /*===========================================================================*/
 /* Generic code.                                                             */
 /*===========================================================================*/
@@ -82,7 +85,19 @@ int main(void)
 	halInit();
 	chSysInit();
 
+
+	/*
+	 * kruciální řádek protože pokud se to zapne bez debugru tak je tam
+	 * jenom bordel a když se to pak srovnává s NULL tak se to cely
+	 * vymrdá a skoči do unhandled exception
+	 */
+	uint8_t i;
+	for (i = 0 ; i< 60 ; i++)
+		logic_pointery[i] = NULL;
+
 	//test_logic_fill();
+
+	chThdSleepMilliseconds(100);
 
 	/*
 	 * Activates the USB driver and then the USB bus pull-up on D+.
