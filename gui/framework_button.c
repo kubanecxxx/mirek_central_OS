@@ -5,40 +5,58 @@
  *      Author: kubanec
  */
 
-#include "framework_button.h"
 #include "ssd1289_port.h"
 #include "touch.h"
 #include "ch.h"
 #include "hal.h"
+#include "framework_button.h"
 
 static Thread * buttonThread = NULL;
 static WORKING_AREA(wa_button,256);
+
 extern EventSource event_touch;
 static void framework_buttonThread(void * data);
 
-typedef (*touch_callback)(void);
+static framework_button_t * first_button = NULL;
+static uint8_t button_count = 0;
 
-typedef struct
+void framework_RegisterButton(framework_button_t * button)
 {
-	touch_callback cb;
-	uint16_t x1;
-	uint16_t x2;
-	uint16_t y1;
-	uint16_t y2;
-	const char * text;
-	uint16_t textColor;
-	uint16_t backgroundColor;
+	if (button == NULL )
+		return;
 
-} framework_button_t;
-
-void framework_RegisterButton(const framework_button_t * button)
-{
 	if (buttonThread == NULL )
 		buttonThread = chThdCreateStatic(&wa_button, sizeof(wa_button),
-				NORMALPRIO - 1, (tfunc_t) framework_buttonThread, NULL );
+				NORMALPRIO - 1, (tfunc_t) framework_buttonThread,
+				&first_button);
+
+	button->p_next = NULL;
+
+	if (first_button == NULL )
+	{
+		first_button = button;
+		button->p_prev = NULL;
+	}
+	else
+	{
+		first_button[button_count - 1].p_next = button;
+		button->p_prev = &first_button[button_count - 1];
+	}
+	button_count++;
 }
 
-void framework_unregisterButton(const framework_button_t * button)
+void framework_drawButton(const framework_button_t * button)
+{
+	tft_DrawRectangle(button->x1, button->y1, button->x2, button->y2,
+			button->backgroundColor);
+
+	uint16_t y = button->y1 + button->textSize / 2
+			+ ((button->y2 - button->y1) / 2);
+	disp_PutsStringBackground(button->text, button->x1, y, button->textColor,
+			button->backgroundColor, button->textSize);
+}
+
+void framework_unregisterButton(framework_button_t * button)
 {
 
 }
@@ -48,11 +66,30 @@ static void framework_buttonThread(void * data)
 	EventListener el;
 	chEvtRegisterMask(&event_touch, &el, TOUCH_PULL);
 
+	(void) data;
+
+	//framework
+
+	uint16_t x, y;
+	framework_button_t * but = first_button;
 	while (TRUE)
 	{
 		chEvtWaitAny(TOUCH_PULL);
 
-		touch_coor.x;
+		x = touch_coor.x;
+		y = touch_coor.y;
+
+		do
+		{
+			if (framework_getButtonActive(but))
+			{
+				if (but->x1 < x && but->x2 > x && but->y1 < y && but->y2 > y)
+					but->cb(but);
+				break;
+			}
+
+			but = but->p_next;
+		} while (but->p_next != NULL );
 	}
 }
 
