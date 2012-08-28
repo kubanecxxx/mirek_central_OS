@@ -21,11 +21,7 @@
 typedef struct
 {
 	const logic_bank_t * bank;
-	const logic_function_t * activeFunctions[10];
-	uint8_t count;
 	uint8_t activeChannel;
-	uint8_t mask_g;
-	uint8_t mask_y;
 } logic_active_t;
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -140,8 +136,6 @@ static bool_t logic_functionLeds(const logic_function_t * arg, uint16_t pin)
 		if (watcha == TRUE)
 		{
 			foot_SetLedsBoth(yellow_i | yellow, green_i | green);
-			//save active function
-			active.activeFunctions[active.count++] = arg;
 		}
 		else
 		{
@@ -220,13 +214,29 @@ static void logic_function(const logic_function_t * arg,
 	else if (temp_i2c.s.eff29 == EFF_TOGGLE)
 		delay_toggle();
 
-	//active.activeFunctions[active.count++] = arg;
-
 	logic_marshallSetup(&arg->marshall);
+}
+
+static void logic_channelLeds(uint8_t pin, logic_ledColor_t coun)
+{
+	/*
+	 * pokud COL_NONE tak tam hodi minuly nastaveni ledek
+	 */
+	static uint16_t green = 0;
+	static uint16_t yellow = 0;
 
 	//leds
-	//logic_functionLeds(arg, but->button.pin);
+	if (coun == COL_YELLOW)
+		yellow = pin;
+	else if (coun == COL_GREEN)
+		green = pin;
+	else if (coun == COL_BOTH)
+	{
+		yellow = pin;
+		green = pin;
+	}
 
+	foot_SetLedsBoth(yellow, green);
 }
 
 /**
@@ -248,23 +258,7 @@ static void logic_channel(const logic_channel_t * arg,
 	uint8_t temp_opto = (temp >> 30) & 0b11;
 	temp &= 0x0FFFFFFF;
 
-	uint16_t pin = but->button.pin;
-	uint16_t coun = but->button.count;
-	uint16_t green = 0;
-	uint16_t yellow = 0;
-
-	//leds
-	if (coun == COL_YELLOW)
-		yellow = pin;
-	else if (coun == COL_GREEN)
-		green = pin;
-	else if (coun == COL_BOTH)
-	{
-		yellow = pin;
-		green = pin;
-	}
-
-	foot_SetLedsBoth(yellow, green);
+	logic_channelLeds(but->button.pin, but->button.count);
 
 	//setup delay and harmonist
 	logic_specific(arg->special);
@@ -404,11 +398,6 @@ static void logic_remap(const logic_bank_t * bank, const logic_remap_t * remap,
 	temp[idx].call = call->call;
 	temp[idx].CallName = call->CallName;
 	temp[idx].callType = call->callType;
-
-	//uint8_t yellow = foot_getLedsYellow();
-	//uint8_t green = foot_getLedsGreen();
-
-	//foot_SetLedsBoth(yellow & ~active.mask_y, green & ~active.mask_g);
 }
 
 /**
@@ -439,13 +428,10 @@ static void logic_specific(const logic_specific_t * arg)
  */
 static void logic_button(const logic_bank_t * bank, const foot_t * button)
 {
-//tohle bude volat funkce above
-//volání bude probihat někde v samostatnym vlákně
 	static logic_remap_t * lastRemap[10];
 	static uint8_t remap_count = 0;
 	logic_button_t * but;
 	uint8_t prevChannel = active.activeChannel;
-
 	uint8_t i;
 
 //prvni musi najit button podle čisla a počtu zmačknuti
@@ -469,21 +455,16 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button)
 	logic_channel_t * channel;
 	logic_function_t * func;
 	logic_remap_t * remap;
-
-	/*vyhrabat to prvni z ramky kvuli přemapování*/
-	logic_buttonCall_t * tmp = *(but->ramCalls);
-	if (tmp == NULL )
-		call = but->calls;
-	else
-		call = tmp;
-
-	call--;
-
 	bool_t jednou = FALSE;
 
 	for (i = 0; i < but->buttonCallCount; i++)
 	{
-		call++;
+		/*vyhrabat to prvni z ramky kvuli přemapování*/
+		logic_buttonCall_t * tmp = *(but->ramCalls);
+		if (tmp == NULL )
+			call = &but->calls[i];
+		else
+			call = &tmp[i];
 
 		if (call->callType == callType_channel)
 		{
@@ -495,7 +476,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button)
 			channel = (logic_channel_t *) call->call;
 			logic_channel(channel, but);
 			active.activeChannel = channel->index;
-			active.count = 0;
+
 		}
 		else if (call->callType == callType_function)
 		{
@@ -503,8 +484,6 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button)
 			if (func->channelCondition == prevChannel
 					|| func->channelCondition == 0)
 			{
-				if (i == 0)
-					active.count = 0;
 				logic_function(func, but);
 			}
 		}
@@ -521,8 +500,8 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button)
 				}
 				logic_remap(bank, remap, FALSE);
 				lastRemap[remap_count++] = remap;
+				logic_channelLeds(0, COL_NONE);
 			}
-
 		}
 	}
 }
@@ -536,27 +515,17 @@ static void logic_blinkingThread(void * data)
 {
 	(void) data;
 
-	/*
-	 * zjistit banku
-	 * zjistit tlačítka v bance
-	 * každy tlačitko projit
-	 * v každym najit přemapování
-	 * z každyho přemapování vytáhnout ledky
-	 * blikat ledkama ktery nejsou COL_NONE
-	 * pokud funkce není aktivní
-	 */
-
-	/*
+	/**
+	 * @detials
 	 * vytahnout funkce z aktivního kanálu
 	 * podivat se jak vypadaji jejich sledovany efekty
 	 * pokud jsou sledovany efekty nahozeny a funkce sou mapovany tak rožne ledky
 	 * zároveň sledovat jesli je funkce mapovaná nebo ne jesli je mapovaná a a efekt
 	 * je zapnuté tak svitit, jesli  neni zapnuté tak blikat
+	 * zhášení efektů se provede přímo v remapu -
+	 * pokud se přemapovává tak zhasne uplně všechno kromě
+	 * aktivniho kanálu
 	 */
-
-///číslo ledky + barva
-	logic_blinking pole[10];
-	logic_function_t * func;
 
 	while (TRUE)
 	{
@@ -577,6 +546,7 @@ static void logic_blinkingThread(void * data)
 					== active.activeChannel
 					|| active.bank->functions[i].channelCondition == 0)
 			{
+				logic_function_t * _func = &active.bank->functions[i];
 				/*
 				 * zjistit na jaky sou namapovany tlačitka a podle tlačitek pohlidat ledky
 				 * ty ktery nejsou nikde mapovany nedělat nic, ty ktery sou mapovany a
@@ -606,30 +576,30 @@ static void logic_blinkingThread(void * data)
 					{
 						/*
 						 * všechny mapovany funkce v kanálu
-						 * todo potřebuju i nemapovany abych je mohl zhasnout - kde vzít
+						 * potřebuju i nemapovany abych je mohl zhasnout - kde vzít
 						 * asi zhasnout eště před přemapem
 						 * tohle co tady zatim je jenom ledku rožne nebo rozbliká ale
 						 * neumi ju to jenom zhasnout protože jak neni mapovaná tak nikdo
 						 * nevi kde je takže to nějak řešit přimo ve funkci remap posilat
 						 * data sem
+						 * kdepak zháši se to rovnou v remapu
 						 */
-						if (calls->callType == callType_function)
+						if (_func == calls->call)
 						{
 							/*
 							 * podivat se jesli sou sledovany efekty aktivní a rožnout ledky nebo je rozblikat
 							 */
-							logic_function_t * func = (logic_function_t *) calls;
 							uint8_t num = but->button.pin;
-							if (logic_functionLeds(func, num))
+							if (logic_functionLeds(_func, num))
 							{
 								/*
 								 * ledkou blikat
 								 */
-								if (func->led == COL_GREEN)
+								if (_func->led == COL_GREEN)
 								{
 									green |= num;
 								}
-								else if (func->led == COL_YELLOW)
+								else if (_func->led == COL_YELLOW)
 								{
 									yellow |= num;
 								}
@@ -638,14 +608,14 @@ static void logic_blinkingThread(void * data)
 									green |= num;
 									yellow |= num;
 								}
+								/*
+								 * vygenerovat bitovou masku kterou pak blikat...
+								 */
 							}
 						}
-
 						calls++;
 					}
-
 				}
-
 			}
 		}
 
@@ -666,9 +636,6 @@ static void logic_blinkingThread(void * data)
 		oj = !oj;
 
 		foot_SetLedsBoth(yellow_i, green_i);
-
-		active.mask_g = green;
-		active.mask_y = yellow;
 
 		if (chThdShouldTerminate())
 			break;
