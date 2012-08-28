@@ -1,2 +1,3 @@
-INCDIR+=gui
-CSRC+=gui/gui_MainScreen.c gui/framework_button.c
+GUI = gui
+INCDIR+=$(GUI)
+CSRC+=$(GUI)/gui_MainScreen.c $(GUI)/framework_button.c $(GUI)/gui_banks.c $(GUI)/gui_master.c

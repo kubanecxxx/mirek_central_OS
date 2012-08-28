@@ -56,7 +56,7 @@ static void putSpecial(const logic_specific_t * special)
 	}
 	else
 	{
-		tft_DrawRectangle(10,10,200,30,LCD_BLACK);
+		tft_DrawRectangle(10, 10, 200, 30, LCD_BLACK);
 	}
 }
 
@@ -84,13 +84,21 @@ static void putChannel(const logic_channel_t * channel)
 	}
 }
 
+/*
+ * tlačitka registrovat všechny hned někde v initu - hlavně vykreslovat grafiku jenom z
+ * jednoho vlákna
+ */
+
 void gui_putMainScreen(void)
 {
 	putSpecial(data.special);
 	putMarshall(data.marshall);
 	putChannel(data.channel);
 
-	//tlačitko
+	//tlačitko vykreslit, aktivovat, deaktivovat všecky ostatni
 	//commit
 }
 
+/*
+ * v bank screenu vykreslit a registrovat tlačitka a deaktivovat to z mainscreenu
+ */
