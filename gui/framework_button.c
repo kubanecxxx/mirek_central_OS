@@ -10,6 +10,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "framework_button.h"
+#include "string.h"
 
 static Thread * buttonThread = NULL;
 static WORKING_AREA(wa_button,256);
@@ -50,10 +51,19 @@ void framework_drawButton(const framework_button_t * button)
 	tft_DrawRectangle(button->x1, button->y1, button->x2, button->y2,
 			button->backgroundColor);
 
-	uint16_t y = button->y1 + button->textSize / 2
+	uint16_t y = button->y1 - button->textSize / 2
 			+ ((button->y2 - button->y1) / 2);
-	disp_PutsStringBackground(button->text, button->x1, y, button->textColor,
+
+	uint16_t delta = (button->x2 - button->x1)
+			- (strlen(button->text) * button->textSize);
+	uint16_t x = button->x1 + delta / 2;
+	disp_PutsStringBackground(button->text, x, y, button->textColor,
 			button->backgroundColor, button->textSize);
+
+	tft_DrawPixel(button->x1, button->y1, button->textColor);
+	tft_DrawPixel(button->x2 - 1, button->y1, button->textColor);
+	tft_DrawPixel(button->x1, button->y2 - 1, button->textColor);
+	tft_DrawPixel(button->x2 - 1, button->y2 - 1, button->textColor);
 }
 
 void framework_unregisterButton(framework_button_t * button)
@@ -65,13 +75,14 @@ static void framework_buttonThread(void * data)
 {
 	EventListener el;
 	chEvtRegisterMask(&event_touch, &el, TOUCH_PULL);
+	chRegSetThreadName("button framework");
 
 	(void) data;
 
 	//framework
 
 	uint16_t x, y;
-	framework_button_t * but = first_button;
+
 	while (TRUE)
 	{
 		chEvtWaitAny(TOUCH_PULL);
@@ -79,17 +90,20 @@ static void framework_buttonThread(void * data)
 		x = touch_coor.x;
 		y = touch_coor.y;
 
+		framework_button_t * but = first_button;
+
 		do
 		{
 			if (framework_getButtonActive(but))
 			{
 				if (but->x1 < x && but->x2 > x && but->y1 < y && but->y2 > y)
+				{
 					but->cb(but);
-				break;
+					break;
+				}
 			}
-
 			but = but->p_next;
-		} while (but->p_next != NULL );
+		} while (but != NULL );
 	}
 }
 

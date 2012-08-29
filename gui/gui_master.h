@@ -18,6 +18,9 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
+void gui_thread(void);
+void gui_init(void);
+
 
 #ifdef __cplusplus
 }

@@ -21,6 +21,8 @@
 #include "switch_master.h"
 #include "string.h"
 #include "logic_fill.h"
+#include "logic_types.h"
+#include "logic_use.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -113,6 +115,8 @@ static void cmd_clear(BaseSequentialStream *chp, int argc, char *argv[])
  * harm commmand
  */
 #ifdef I2C_HARMONIST_SHELL
+static logic_specific_t special;
+
 static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc == 0)
@@ -124,23 +128,25 @@ static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 	{
 		uint16_t temp = atoi(argv[1]);
 		if (!strcmp(argv[0], "volume"))
-			harm_volumeR(temp, chprintf(chp,"volume picu"));
+			special.harmonist.volume = harm_volumeR(temp, 1);
 
 		else if (!strcmp(argv[0], "key"))
-			harm_keyR(temp, chprintf(chp,"key picu"));
+			special.harmonist.key = harm_keyR(temp, 1);
 
 		else if (!strcmp(argv[0], "harmony"))
-			harm_harmonyR(temp, chprintf(chp,"harmony picu"));
+			special.harmonist.harmony = harm_harmonyR(temp, 1);
 
 		else if (!strcmp(argv[0], "mode"))
-			harm_modeR(temp, chprintf(chp,"mode picu"));
+			special.harmonist.mode = harm_modeR(temp, 1);
 		else
 			chprintf(chp, "zase nic");
+		logic_specific(&special);
 	}
 	else
 	{
 		chprintf(chp, "picu!!!\n\r");
 	}
+
 }
 #endif
 
@@ -169,16 +175,17 @@ static void cmd_delay(BaseSequentialStream *chp, int argc, char *argv[])
 		temp = atoi(argv[1]);
 		if (!strcmp(argv[0], "volume"))
 		{
-			delay_volume(temp);
+			special.delay.volume = temp;
 		}
 		else if (!strcmp(argv[0], "time"))
 		{
-			delay_time(temp);
+			special.delay.time = temp;
 		}
 		else
 		{
 			chprintf(chp, "picu\n");
 		}
+		logic_specific(&special);
 	}
 	else
 		chprintf(chp, "malo argumentu");

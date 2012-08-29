@@ -120,6 +120,7 @@ static void opto_thread(void * data)
 	(void) data;
 	uint8_t i;
 	bool_t temp;
+	chRegSetThreadName("opto");
 
 	while (TRUE)
 	{

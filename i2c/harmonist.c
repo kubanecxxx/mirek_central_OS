@@ -63,6 +63,7 @@ static void harm_thread(void * data)
 {
 	(void) data;
 	uint8_t inputs;
+	chRegSetThreadName("harmonist");
 
 	while (TRUE)
 	{

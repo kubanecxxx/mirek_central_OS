@@ -15,7 +15,7 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-static framework_button_t * button_first;
+framework_button_t * button_first;
 extern framework_button_t button_toBanks;
 extern const logic_base_t * base;
 /* Private function prototypes -----------------------------------------------*/
@@ -26,13 +26,15 @@ void gui_putBankScreen(void)
 	 * aktivovat a vykreslit tlačitka, deaktivovat to prvni
 	 */
 	button_toBanks.bit.active = FALSE;
+	tft_ClearScreen(LCD_BLACK);
 	framework_button_t * but = button_first;
 
 	do
 	{
 		but->bit.active = TRUE;
 		framework_drawButton(but);
-	} while ((but = but->p_next) != NULL );
+		but = but->p_next;
+	} while (but != NULL );
 }
 
 void gui_bankScreenInit(touch_callback cb)
@@ -40,6 +42,9 @@ void gui_bankScreenInit(touch_callback cb)
 	/*
 	 * alokovat paměť pro tlačitka s bankou, vytvořit tlačitka a registrovat
 	 */
+
+	tft_ClearScreen(LCD_BLACK);
+
 	uint8_t i;
 	uint16_t y = 30;
 	framework_button_t * temp;
@@ -52,12 +57,12 @@ void gui_bankScreenInit(touch_callback cb)
 		temp->bit.active = FALSE;
 		temp->cb = cb;
 		temp->text = base->banks[i].name;
-		temp->textColor = LCD_WHITE;
+		temp->textColor = LCD_BLACK;
 		temp->textSize = 16;
-		temp->x1 = 20;
-		temp->x2 = 80;
+		temp->x1 = 10;
+		temp->x2 = 310;
 		temp->y1 = y;
-		y += 24;
+		y += 30;
 		temp->y2 = y;
 		y += 20;
 

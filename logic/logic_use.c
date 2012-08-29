@@ -16,6 +16,7 @@
 #include "logic_use.h"
 #include "logic_flash.h"
 #include "string.h"
+#include "gui_MainScreen.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -27,7 +28,6 @@ const logic_base_t * base = (logic_base_t *) FLASH_BASE_ADDRESS;
 logic_active_t active;
 
 /* Private function prototypes -----------------------------------------------*/
-static void logic_specific(const logic_specific_t * arg);
 static void logic_blinkingThread(void * data);
 static void logic_scanThread(void * data);
 static void logic_marshallSetup(const logic_marshall_t * marsh);
@@ -81,6 +81,7 @@ static void logic_scanThread(void * data)
 {
 	(void) data;
 
+	chRegSetThreadName("logic scan");
 	EventListener el;
 	chEvtRegister(&event_i2c_buttons, &el,
 			BUTTON_EVENT_ID | BUTTON_NOW_EVENT_ID);
@@ -159,6 +160,7 @@ static bool_t logic_functionLeds(const logic_function_t * arg, uint16_t pin)
 static void logic_function(const logic_function_t * arg,
 		const logic_button_t * but)
 {
+	(void) but;
 	//I2C effects 28 - harmonist ,29 - delay
 	uint64_t temp = arg->effects.w;
 	logic_dibit_t temp_i2c = arg->effects;
@@ -283,6 +285,7 @@ static void logic_channel(const logic_channel_t * arg,
 	logic_marshallSetup(&arg->marshall);
 
 	logic_channelLeds(but->button.pin, but->button.count);
+	gui_putChannel(arg);
 }
 
 /**
@@ -317,6 +320,8 @@ static void logic_marshallSetup(const logic_marshall_t * marsh)
 		else
 			serial_unmute();
 	}
+
+	gui_putMarshall(marsh);
 }
 
 /**
@@ -406,7 +411,7 @@ static void logic_remap(const logic_bank_t * bank, const logic_remap_t * remap,
  * @ingroup LOGIC_HL
  * @param[in] struktura specifického nastavení
  */
-static void logic_specific(const logic_specific_t * arg)
+void logic_specific(const logic_specific_t * arg)
 {
 	if (arg == NULL )
 		return;
@@ -418,6 +423,8 @@ static void logic_specific(const logic_specific_t * arg)
 	harm_key(arg->harmonist.key);
 	harm_volume(arg->harmonist.volume);
 	harm_harmony(arg->harmonist.harmony);
+
+	gui_putSpecial(arg);
 }
 
 /**
@@ -518,7 +525,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 static void logic_blinkingThread(void * data)
 {
 	(void) data;
-
+	chRegSetThreadName("logic blink");
 	/**
 	 * @detials
 	 * vytahnout funkce z aktivního kanálu

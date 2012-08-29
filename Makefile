@@ -99,7 +99,9 @@ CSRC += $(PORTSRC) \
        $(I2C_USER_SRC) \
        $(USB_USER_SRC) 
        
-CSRC += main.c
+CSRC += main.c chsprintf/chsprintf.c
+
+INCDIR += chsprintf
 
 port = port
 ssd = ssd1289

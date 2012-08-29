@@ -33,9 +33,9 @@
 #include "usb_user.h"
 #include "rs232.h"
 #include "switch_master.h"
-#include "logic_use_test.h"
 #include "logic_use.h"
 #include "logic_types.h"
+#include "gui_master.h"
 
 /*
  * external interrupt system config
@@ -110,13 +110,10 @@ int main(void)
 	shellInit();
 
 	/*
-	 * Init tft display ssd1289
+	 * Init tft display ssd1289 and gui
 	 */
-	tft_InitLCD();
-	touch_init();
-	tft_ClearScreen(LCD_BLUE);
-	palSetPadMode(GPIOD, 12, PAL_MODE_OUTPUT_PUSHPULL);
-	palSetPad(GPIOD, 12);
+	gui_init();
+
 
 	/**
 	 * @brief start the whole bad thing
@@ -140,20 +137,6 @@ int main(void)
 	i2c_test();
 #endif
 
-	while (TRUE)
-	{
-
-		chThdSleepMilliseconds(3);
-		if (touch_getState() == PUSHED)
-		{
-			palSetPad(GPIOD, 12);
-			tft_DrawPixel(touch_coor.x, touch_coor.y, LCD_BLACK);
-		}
-		else
-		{
-			palClearPad(GPIOD, 12);
-			chEvtWaitAny(TOUCH_PUSH);
-		}
-	}
+	gui_thread();
 
 }

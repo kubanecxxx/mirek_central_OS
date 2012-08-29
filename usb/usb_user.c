@@ -299,6 +299,7 @@ static void usb_user_thread(void * nic)
 	(void) nic;
 	Thread *shelltp = NULL;
 
+	chRegSetThreadName("usb watch");
 	chThdSleepMilliseconds(1000);
 
 	sduObjectInit(&SDU1);

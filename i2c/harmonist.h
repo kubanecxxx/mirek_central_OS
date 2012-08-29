@@ -157,13 +157,13 @@ extern bool_t _harm_enabled;
 #define harm_harmony(x) x < HARM_SHIFT_COUNT ? _dac_write(CHAN_HARM,x) :NULL
 
 ///@brief výběr hlasitosti + odpověď když se něco pojebe
-#define harm_volumeR(vol,response) vol < 4096 ? _dac_write(CHAN_VOLUME,vol) : response
+#define harm_volumeR(vol,response) vol < 4096 ? vol : response
 ///@brief výběr módu + odpověď když se něco pojebe
-#define harm_modeR(x,response) x < HARM_MODE_COUNT ? _dac_write(CHAN_MODE,x) : response
+#define harm_modeR(x,response) x < HARM_MODE_COUNT ? x : response
 ///@brief výběr key + odpověď když se něco pojebe
-#define harm_keyR(x,response)  x < HARM_KEY_COUNT ? _dac_write(CHAN_KEY,x) :response
+#define harm_keyR(x,response)  x < HARM_KEY_COUNT ? x :response
 ///@brief výběr harmony + odpověď když se něco pojebe
-#define harm_harmonyR(x,response) x < HARM_SHIFT_COUNT ? _dac_write(CHAN_HARM,x) :response
+#define harm_harmonyR(x,response) x < HARM_SHIFT_COUNT ? x :response
 
 ///@brief PCA input LDAC
 #define harm_getInput_LDAC(inputs) ((inputs >> HARM_LDAC) & 1)
