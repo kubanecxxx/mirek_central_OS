@@ -18,6 +18,8 @@ extern "C" {
 /* Exported constants --------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
+void gui_bankScreenInit(touch_callback cb);
+void gui_putBankScreen(void);
 
 #ifdef __cplusplus
 }

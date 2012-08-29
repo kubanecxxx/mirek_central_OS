@@ -18,18 +18,13 @@
 #include "string.h"
 
 /* Private typedef -----------------------------------------------------------*/
-typedef struct
-{
-	const logic_bank_t * bank;
-	uint8_t activeChannel;
-} logic_active_t;
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 WORKING_AREA(wa_blinking, 256);
 WORKING_AREA(wa_scan, 512);
-static logic_base_t * base = (logic_base_t *) FLASH_BASE_ADDRESS;
-static logic_active_t active;
+const logic_base_t * base = (logic_base_t *) FLASH_BASE_ADDRESS;
+logic_active_t active;
 
 /* Private function prototypes -----------------------------------------------*/
 static void logic_specific(const logic_specific_t * arg);

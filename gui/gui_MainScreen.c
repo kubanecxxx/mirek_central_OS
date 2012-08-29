@@ -12,6 +12,10 @@
 #include "stdio.h"
 #include "ssd1289/print.h"
 #include "ssd1289/ssd1289_lld.h"
+#include "framework_button.h"
+#include "string.h"
+
+framework_button_t button_toBanks;
 
 typedef struct
 {
@@ -89,16 +93,47 @@ static void putChannel(const logic_channel_t * channel)
  * jednoho vlákna
  */
 
+extern framework_button_t * first;
+extern const logic_base_t * base;
+
 void gui_putMainScreen(void)
 {
 	putSpecial(data.special);
 	putMarshall(data.marshall);
 	putChannel(data.channel);
 
+	uint8_t i;
+	for (i = 0; i < base->bankCount; i++)
+	{
+		first[i].bit.active = FALSE;
+	}
+
+	button_toBanks.bit.active = TRUE;
+	framework_drawButton(&button_toBanks);
 	//tlačitko vykreslit, aktivovat, deaktivovat všecky ostatni
+
 	//commit
+}
+
+void gui_mainScreenInit(touch_callback cb)
+{
+	button_toBanks.backgroundColor = LCD_BLACK;
+	button_toBanks.bit.active = FALSE;
+	button_toBanks.cb = cb;
+	button_toBanks.text = "Banky";
+	button_toBanks.textColor = LCD_GREY;
+	button_toBanks.textSize = 16;
+	button_toBanks.x1 = 280;
+	button_toBanks.x2 = 319;
+	button_toBanks.y1 = 20;
+	button_toBanks.y2 = 50;
+
+	framework_RegisterButton(&button_toBanks);
 }
 
 /*
  * v bank screenu vykreslit a registrovat tlačitka a deaktivovat to z mainscreenu
+ */
+/*
+ * udělat podporu v shellu pro nastavování harmonistu a delayje až si to bude mirek nastavovat
  */

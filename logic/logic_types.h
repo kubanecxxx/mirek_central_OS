@@ -382,4 +382,10 @@ typedef struct
 	logic_bank_t * banks;
 } logic_base_t;
 
+typedef struct
+{
+	const logic_bank_t * bank;
+	uint8_t activeChannel;
+} logic_active_t;
+
 #endif /* LOGIC_TYPES_H_ */

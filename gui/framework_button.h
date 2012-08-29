@@ -34,6 +34,7 @@ struct framework_button_t
 };
 
 void framework_RegisterButton(framework_button_t * button);
+void framework_drawButton(const framework_button_t * button);
 
 #define framework_setButtonActive(button,bolean) button->bit.active = bolean
 #define framework_getButtonActive(button) (button->bit.active)
