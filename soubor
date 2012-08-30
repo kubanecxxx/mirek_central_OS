@@ -16,19 +16,16 @@ banka jednicka
 kanal cistej
 kan_marshall preamp 1
 kan_marshall volume 1
-kan_marshall smycka off
-kan_marshall mute off
+kan_marshall smycka on
+kan_efekty chorus on
 
 kanal crunch
 kan_marshall preamp 2
 kan_marshall volume 2
-kan_marshall smycka on
-kan_efekty detox on
-kan_efekty chorus on
 
-funkce delay
-fun_podminka 1
-fun_efekty 1 toggle
+kanal drive
+kan_marshall preamp 3
+kan_marshall volume 3
 
 funkce detx
 fun_podminka 2
@@ -44,12 +41,14 @@ fun_watch phaser
 
 tlacitko jedna 1 1
 tlac_nast cistej
-tlac_nast delay
 
 tlacitko dva 2 1
 tlac_nast crunch
 
-tlacitko tri 3 1
+tlacitko tlac-drive 3 1
+tlac_nast drive
+
+tlacitko tri 4 1
 tlac_nast detx
 
 tlacitko ctyri 4 2
