@@ -23,22 +23,22 @@ typedef struct
 	logic_bank_t bank[10];
 
 	uint8_t channelCounter;
-	logic_channel_t channel[10];
+	logic_channel_t channel[20];
 
 	uint8_t functionCounter;
-	logic_function_t function[10];
+	logic_function_t function[30];
 
 	uint8_t remapCounter;
-	logic_remap_t remap[10];
+	logic_remap_t remap[30];
 
 	uint8_t buttonCounter;
-	logic_button_t button[10];
+	logic_button_t button[30];
 
 	uint8_t specialCounter;
-	logic_specific_t special[10];
+	logic_specific_t special[30];
 
 	uint8_t callCounter;
-	logic_buttonCall_t call[30];
+	logic_buttonCall_t call[50];
 } fill_temp_static_t;
 
 typedef struct
@@ -107,6 +107,7 @@ word |= (eff_state << (2*number))
 /* Private variables ---------------------------------------------------------*/
 static fill_temp_t fill_actives;
 static fill_temp_static_t * _fill_static;
+static fill_temp_static_t __fill_static;
 
 /*
  static MemoryHeap heap_bank;
@@ -184,7 +185,10 @@ void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	{
 		chThdTerminate(thd_logic_blinking);
 		while (!chThdTerminated(thd_logic_blinking))
-			;
+		{
+			chThdSleepMilliseconds(100);
+		}
+
 	}
 	/*if (thd_logic_scan)
 	 {
@@ -193,13 +197,9 @@ void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	 ;
 	 }*/
 
-	uint32_t temp;
 //smazat flašku a připravit pro zápis
 	logic_flashErase(FLASH_ADDRESS_START, FLASH_ADDRESS_STOP );
-
-	temp = chCoreStatus();
-	_fill_static = chCoreAlloc(sizeof(fill_temp_static_t));
-	temp = chCoreStatus();
+	_fill_static = &__fill_static;
 
 //vymazat cache
 	fill_actives.base.bankCount = 0;
@@ -284,7 +284,7 @@ void cmd_bankAdd(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "banka nic");
+		SHELL_ERROR(SHELL_FILL_BANK);
 	}
 }
 
@@ -301,7 +301,7 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[])
 
 	if (argc == 1)
 	{
-		//inicializovat všechno na nuly a tak
+		/*inicializovat všechno na nuly a tak*/
 		temp = alloc_channel();
 
 		fill_actives.channel = temp;
@@ -325,7 +325,7 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "kanal nic");
+		SHELL_ERROR(SHELL_FILL_CHANNEL_ADD);
 	}
 }
 
@@ -360,12 +360,12 @@ void cmd_channel_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 		}
 		else
 		{
-			chprintf(chp, "marshal kanal nic");
+			SHELL_ERROR(SHELL_FILL_CHANNEL_MARS);
 		}
 	}
 	else
 	{
-		chprintf(chp, "marshal kanal nic");
+		SHELL_ERROR(SHELL_FILL_CHANNEL_MARS);
 	}
 }
 
@@ -387,7 +387,7 @@ void cmd_channel_effs(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "kanal efekty nic");
+		SHELL_ERROR(SHELL_FILL_CHANNEL_EFFS);
 	}
 }
 
@@ -440,45 +440,46 @@ static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
 			temp = alloc_special();
 			spec = temp;
 
-			//default setup
-					temp->delay.time = -1;
-					temp->delay.volume = -1;
+			/*default setup*/
+			temp->delay.time = -1;
+			temp->delay.volume = -1;
 
-					temp->harmonist.harmony = -1;
-					temp->harmonist.key = -1;
-					temp->harmonist.mode = -1;
-					temp->harmonist.volume = -1;
-				}
-
-				uint16_t num = atoi(argv[2]);
-				if (!strcmp(argv[0], "delay"))
-				{
-					if (!strcmp(argv[1], "volume"))
-					temp->delay.volume = num;
-					else if (!strcmp(argv[1], "time"))
-					temp->delay.time = num;
-				}
-				else if (!strcmp(argv[0], "harmonist"))
-				{
-					if (!strcmp(argv[1], "mode"))
-					temp->harmonist.mode = num;
-					else if (!strcmp(argv[1], "key"))
-					temp->harmonist.key = num;
-					else if (!strcmp(argv[1], "harmony"))
-					temp->harmonist.harmony = num;
-					else if (!strcmp(argv[1], "volume"))
-					temp->harmonist.volume = num;
-				}
-				else
-				{
-					chprintf(chp, "kanal special nic");
-				}
-			}
-			else
-			{
-				chprintf(chp, "kanal special nic");
-			}
+			temp->harmonist.harmony = -1;
+			temp->harmonist.key = -1;
+			temp->harmonist.mode = -1;
+			temp->harmonist.volume = -1;
 		}
+
+		uint16_t num = atoi(argv[2]);
+		if (!strcmp(argv[0], "delay"))
+		{
+			if (!strcmp(argv[1], "volume"))
+			temp->delay.volume = num;
+			else if (!strcmp(argv[1], "time"))
+			temp->delay.time = num;
+		}
+		else if (!strcmp(argv[0], "harmonist"))
+		{
+			if (!strcmp(argv[1], "mode"))
+			temp->harmonist.mode = num;
+			else if (!strcmp(argv[1], "key"))
+			temp->harmonist.key = num;
+			else if (!strcmp(argv[1], "harmony"))
+			temp->harmonist.harmony = num;
+			else if (!strcmp(argv[1], "volume"))
+			temp->harmonist.volume = num;
+		}
+		else
+		{
+			SHELL_ERROR(SHELL_FILL_CHANNEL_SPECIAL);
+		}
+	}
+	else
+	{
+		SHELL_ERROR(SHELL_FILL_CHANNEL_SPECIAL);
+	}
+}
+
 			/*--------------------------------------------------------------------*
 			 * function commands
 			 *--------------------------------------------------------------------*/
@@ -518,7 +519,7 @@ void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 			}
 			else
 			{
-				chprintf(chp, "kanal nic");
+				SHELL_ERROR(SHELL_FILL_FUNC_ADD);
 			}
 		}
 
@@ -552,7 +553,7 @@ void cmd_function_effs(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "funkce efekty nic");
+		SHELL_ERROR(SHELL_FILL_FUNC_EFFS);
 	}
 }
 
@@ -567,7 +568,7 @@ void cmd_function_led(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-
+		SHELL_ERROR(SHELL_FILL_FUNC_LED);
 	}
 }
 /**
@@ -584,7 +585,7 @@ void cmd_function_watch(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-
+		SHELL_ERROR(SHELL_FILL_FUNC_WATCH);
 	}
 }
 /**
@@ -641,12 +642,12 @@ void cmd_function_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 		}
 		else
 		{
-			chprintf(chp, "marshal funkce nic");
+			SHELL_ERROR(SHELL_FILL_FUNC_MARS);
 		}
 	}
 	else
 	{
-		chprintf(chp, "marshal funkce nic");
+		SHELL_ERROR(SHELL_FILL_FUNC_MARS);
 	}
 }
 
@@ -673,7 +674,7 @@ void cmd_function_prevCondition(BaseSequentialStream *chp, int argc,
 	}
 	else
 	{
-		chprintf(chp, "funkce podminka nic");
+		SHELL_ERROR(SHELL_FILL_FUNC_CONDITION);
 	}
 }
 
@@ -696,45 +697,35 @@ void cmd_remapAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		if (fill_actives.bank->remaps == NULL )
 		fill_actives.bank->remaps = temp;
 
-		//default values
-				temp->channelCondition = 0;
-				temp->ledBlinkColor = COL_NONE;
-				temp->name = NULL;
-				temp->ButtonName = NULL;
+		/*default values*/
+		temp->channelCondition = 0;
+		temp->ledBlinkColor = COL_NONE;
+		temp->name = NULL;
+		temp->ButtonName = NULL;
 
-				temp->newCall.CallName = NULL;
-				temp->newCall.call = NULL;
-				temp->oldCall.call = NULL;
-				temp->oldCall.CallName = NULL;
-				temp->save = FALSE;
+		temp->newCall.CallName = NULL;
+		temp->newCall.call = NULL;
+		temp->oldCall.call = NULL;
+		temp->oldCall.CallName = NULL;
+		temp->save = FALSE;
 
-				//tyhle věci je potřeba vypočitat ze jmen před uloženim do flaš
-				temp->button.count = 0;
-				temp->button.pin = 0;
+		/*tyhle věci je potřeba vypočitat ze jmen před uloženim do flaš*/
+		temp->button.count = 0;
+		temp->button.pin = 0;
 
-				fill_actives.remap->name = logic_flashWriteName(argv[0]);
+		fill_actives.remap->name = logic_flashWriteName(argv[0]);
 
-			}
-			else
-			{
-				chprintf(chp, "remap nic");
-			}
-		}
-		/**
-		 * @ingroup logic_remap
-		 */
-void cmd_remap_led(BaseSequentialStream *chp, int argc, char *argv[])
-{
-	if (argc == 1)
-	{
-		_led(argv[0], &fill_actives.remap->ledBlinkColor);
 	}
 	else
 	{
-		chprintf(chp, "remap led nic");
+		SHELL_ERROR(SHELL_FILL_REMAP_ADD);
 	}
 }
 
+		/**
+		 * @ingroup logic_function
+		 * @brief přepiše řetězec ledky na čislo
+		 */
 static void _led(const char * retezec, logic_ledColor_t * led)
 {
 	if (!strcmp(retezec, "zelena"))
@@ -764,7 +755,7 @@ void cmd_remap_prevCondition(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "remap podminka nic");
+		SHELL_ERROR(SHELL_FILL_REMAP_CONDITION);
 	}
 }
 /**
@@ -779,7 +770,7 @@ void cmd_remap_setButtonName(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "remap jmeno tlacitka nic");
+		SHELL_ERROR(SHELL_FILL_REMAP_BUTTON);
 	}
 }
 /**
@@ -793,7 +784,7 @@ void cmd_remap_setNewCallName(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "remap jmeno nove fce nic");
+		SHELL_ERROR(SHELL_FILL_REMAP_OLD);
 	}
 }
 /**
@@ -807,12 +798,15 @@ void cmd_remap_setOldCallName(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "remap jmeno stare fce nic");
+		SHELL_ERROR(SHELL_FILL_REMAP_OLD);
 	}
 }
 
 void cmd_remap_save(BaseSequentialStream *chp, int argc, char *argv[])
 {
+	(void) chp;
+	(void) argc;
+	(void) argv;
 	fill_actives.remap->save = TRUE;
 }
 
@@ -854,7 +848,7 @@ void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "tlacitko nic");
+		SHELL_ERROR(SHELL_FILL_BUTTON_ADD);
 	}
 }
 
@@ -901,12 +895,12 @@ void cmd_button_now(BaseSequentialStream *chp, int argc, char *argv[])
 		}
 		else
 		{
-			chprintf(chp, "tlacitko hned nic");
+			SHELL_ERROR(SHELL_FILL_BUTTON_NOW);
 		}
 	}
 	else
 	{
-		chprintf(chp, "tlacitko hned nic");
+		SHELL_ERROR(SHELL_FILL_BUTTON_NOW);
 	}
 }
 
@@ -936,7 +930,7 @@ void cmd_button_call(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		chprintf(chp, "tlacitko call nic");
+		SHELL_ERROR(SHELL_FILL_BUTTON_CALL);
 	}
 
 }

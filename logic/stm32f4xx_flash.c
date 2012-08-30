@@ -163,6 +163,8 @@
   *            @arg FLASH_Latency_7: FLASH Seven Latency cycles      
   * @retval None
   */
+#define assert_param(x);
+
 void FLASH_SetLatency(uint32_t FLASH_Latency)
 {
   /* Check the parameters */

@@ -76,7 +76,6 @@ include $(CHIBIOS)/test/test.mk
 include i2c/i2c_user.mk
 include usb/usb_user.mk
 include touch/touch.mk
-#include rfm12b/rfm.mk
 include rs232/serial.mk
 include switching/switch.mk
 include logic/logic.mk

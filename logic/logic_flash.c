@@ -186,7 +186,7 @@ logic_button_t * logic_flashWriteButton(const logic_bank_t * bank,
 		logic_button_t * but)
 {
 	static uint32_t addr = FLASH_BUTTON_ADDRESS;
-	static logic_buttonCall_t * ramka = logic_pointery;
+	static logic_buttonCall_t ** ramka = logic_pointery;
 	but->calls = logic_flashWriteAllButtonCalls(bank, but);
 	but->ramCalls = ramka++;
 

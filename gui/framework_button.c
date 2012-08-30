@@ -68,7 +68,7 @@ void framework_drawButton(const framework_button_t * button)
 
 void framework_unregisterButton(framework_button_t * button)
 {
-
+	(void) button;
 }
 
 static void framework_buttonThread(void * data)

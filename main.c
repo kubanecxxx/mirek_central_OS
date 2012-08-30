@@ -139,4 +139,5 @@ int main(void)
 
 	gui_thread();
 
+	while(TRUE);
 }

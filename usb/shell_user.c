@@ -119,10 +119,12 @@ static logic_specific_t special;
 
 static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	if (argc == 0)
+	if (argc == 1)
 	{
-		//turn off/on harmonizer
-		harm_toggle();
+		if (!strcmp(argv[0], "on"))
+			harm_enable();
+		else if (!strcmp(argv[0], "off"))
+			harm_disable();
 	}
 	else if (argc == 2)
 	{
@@ -139,12 +141,12 @@ static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 		else if (!strcmp(argv[0], "mode"))
 			special.harmonist.mode = harm_modeR(temp, 1);
 		else
-			chprintf(chp, "zase nic");
+			SHELL_ERROR(SHELL_HARMONIST);
 		logic_specific(&special);
 	}
 	else
 	{
-		chprintf(chp, "picu!!!\n\r");
+		SHELL_ERROR(SHELL_HARMONIST);
 	}
 
 }
@@ -183,12 +185,12 @@ static void cmd_delay(BaseSequentialStream *chp, int argc, char *argv[])
 		}
 		else
 		{
-			chprintf(chp, "picu\n");
+			SHELL_ERROR(SHELL_DELAY);
 		}
 		logic_specific(&special);
 	}
 	else
-		chprintf(chp, "malo argumentu");
+		SHELL_ERROR(SHELL_DELAY);
 }
 #endif
 
@@ -197,7 +199,7 @@ static void cmd_relay(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc != 2)
 	{
-		chprintf(chp, "dva argumenty, jeden ketry rele, druhej 0/1 - zap/vyp");
+		SHELL_ERROR(SHELL_RELAY);
 		return;
 	}
 
@@ -214,7 +216,7 @@ static void cmd_opto(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc != 2)
 	{
-		chprintf(chp, "dva argumenty, jeden ketry rele, druhej 0/1 - zap/vyp");
+		SHELL_ERROR(SHELL_OPTO);
 		return;
 	}
 
@@ -227,6 +229,46 @@ static void cmd_opto(BaseSequentialStream *chp, int argc, char *argv[])
 		opto_disableEffect(eff);
 }
 #endif
+
+static void cmd_marshall(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	static logic_marshall_t marsh;
+
+	if (argc != 2)
+	{
+		SHELL_ERROR(SHELL_MARSHALL);
+		return;
+	}
+
+	uint8_t temp = atoi(argv[1]);
+
+	if (!strcmp(argv[0], "volume"))
+	{
+		marsh.volume = temp;
+	}
+	else if (!strcmp(argv[0], "gain"))
+	{
+		marsh.gain = temp;
+	}
+	else if (!strcmp(argv[0], "loop"))
+	{
+		marsh.effLoop = temp;
+	}
+	else if (!strcmp(argv[0], "mute"))
+	{
+		marsh.mute = temp;
+	}
+	else if (!strcmp(argv[0], "high"))
+	{
+		marsh.high = temp;
+	}
+	else
+	{
+		SHELL_ERROR(SHELL_MARSHALL);
+		return;
+	}
+	logic_marshallSetup(&marsh);
+}
 
 const ShellCommand commands[] =
 {
@@ -247,6 +289,7 @@ const ShellCommand commands[] =
 		{ "relay", cmd_relay },
 		{ "opto", cmd_opto },
 #endif
+		{ "marshall", cmd_marshall },
 		//structs filling via usb
 #include "logic_shell.h"
 

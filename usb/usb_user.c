@@ -329,6 +329,6 @@ void usb_user_init(void)
 #else
 	usbDisconnectBus(serusbcfg.usbp);
 	chThdCreateStatic(&wa_usb_user, sizeof(wa_usb_user), NORMALPRIO,
-			usb_user_thread, NULL );
+			(tfunc_t)usb_user_thread, NULL );
 #endif
 }

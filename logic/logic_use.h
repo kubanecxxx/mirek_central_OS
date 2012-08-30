@@ -21,6 +21,7 @@ extern "C" {
 /* Exported functions --------------------------------------------------------*/
 void logic_init(void);
 void logic_specific(const logic_specific_t * arg);
+void logic_marshallSetup(const logic_marshall_t * marsh);
 
 #ifdef __cplusplus
 }

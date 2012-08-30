@@ -30,7 +30,6 @@ logic_active_t active;
 /* Private function prototypes -----------------------------------------------*/
 static void logic_blinkingThread(void * data);
 static void logic_scanThread(void * data);
-static void logic_marshallSetup(const logic_marshall_t * marsh);
 static void logic_button(const logic_bank_t * bank, const foot_t * button,
 		eventmask_t mask);
 static void logic_channel(const logic_channel_t * arg,
@@ -291,7 +290,7 @@ static void logic_channel(const logic_channel_t * arg,
 /**
  * @brief nastavení maršála po complotě
  */
-static void logic_marshallSetup(const logic_marshall_t * marsh)
+void logic_marshallSetup(const logic_marshall_t * marsh)
 {
 	//od 1-4 jinak se nic nestane
 	serial_gain(marsh->gain);
@@ -300,25 +299,37 @@ static void logic_marshallSetup(const logic_marshall_t * marsh)
 	if (marsh->effLoop != EFF_NOTHING)
 	{
 		if (marsh->effLoop == EFF_ENABLE)
+		{
 			serial_loopOn();
+		}
 		else
+		{
 			serial_loopBypass();
+		}
 	}
 
 	if (marsh->high != EFF_NOTHING)
 	{
 		if (marsh->high == EFF_ENABLE)
+		{
 			serial_channelHigh();
+		}
 		else
+		{
 			serial_channelLow();
+		}
 	}
 
 	if (marsh->mute != EFF_NOTHING)
 	{
 		if (marsh->mute == EFF_ENABLE)
+		{
 			serial_mute();
+		}
 		else
+		{
 			serial_unmute();
+		}
 	}
 
 	gui_putMarshall(marsh);
@@ -543,7 +554,12 @@ static void logic_blinkingThread(void * data)
 		while (active.bank == NULL )
 		{
 			chThdSleepMilliseconds(1000);
+			if (chThdShouldTerminate())
+				return;
 		}
+
+		if (chThdShouldTerminate())
+			return;
 
 		uint8_t i, j;
 		uint8_t k = 0;
@@ -648,8 +664,6 @@ static void logic_blinkingThread(void * data)
 
 		foot_SetLedsBoth(yellow_i, green_i);
 
-		if (chThdShouldTerminate())
-			break;
 		chThdSleepMilliseconds(200);
 	}
 }

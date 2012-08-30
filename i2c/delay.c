@@ -9,6 +9,7 @@
 #include "ch.h"
 #include "hal.h"
 #include "delay.h"
+#include "rs232.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -73,7 +74,7 @@ void _delay_dalas(uint8_t channel, uint8_t value)
 	if (channel == DAL_POTVOLUME)
 	{
 		prev = delay_get();
-		delay_off();
+		serial_loopBypass();
 		chThdSleepMilliseconds(100);
 	}
 
@@ -86,7 +87,7 @@ void _delay_dalas(uint8_t channel, uint8_t value)
 	if (prev == TRUE && channel == DAL_POTVOLUME)
 	{
 		chThdSleepMilliseconds(150);
-		delay_on();
+		serial_loopOn();
 	}
 }
 

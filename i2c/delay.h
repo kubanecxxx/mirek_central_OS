@@ -71,7 +71,7 @@ extern "C"
 ///@brief nastavit delay_volume
 #define delay_volume(x) _delay_dalas(DAL_POTVOLUME,x)
 ///@brief nastavit delay time
-#define delay_time(x) _delay_dalas(DAL_POTTIME,x)
+#define delay_time(x) _delay_dalas(DAL_POTTIME,255-x)
 
 /**
  * @}
