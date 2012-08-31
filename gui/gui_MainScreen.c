@@ -15,6 +15,7 @@
 #include "framework_button.h"
 #include "string.h"
 #include "chsprintf.h"
+#include "logic_flash.h"
 
 framework_button_t button_toBanks;
 
@@ -110,9 +111,12 @@ void gui_putMainScreen(void)
 	putChannel(data.channel);
 
 	uint8_t i;
-	for (i = 0; i < base->bankCount; i++)
+	if (base->banks == (logic_bank_t *) FLASH_BANK_ADDRESS)
 	{
-		button_first[i].bit.active = FALSE;
+		for (i = 0; i < base->bankCount; i++)
+		{
+			button_first[i].bit.active = FALSE;
+		}
 	}
 
 	button_toBanks.bit.active = TRUE;

@@ -24,9 +24,12 @@
  * @notapi
  * @ingroup RS232
  */
+
 BaseSequentialStream * marshall = (BaseSequentialStream*) &SD2;
+eff_loop_t _loop;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
+
 
 /**
  * @brief nastavení UARTU

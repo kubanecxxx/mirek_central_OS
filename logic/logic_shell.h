@@ -34,5 +34,7 @@
 {	"tlac_nast" , cmd_button_call},
 {	"tlac_hned" , cmd_button_now},
 //{	"tlac_drzet", cmd_button_hold},
+{	"bend", cmd_bend},
+{	"time", cmd_time},
 
 #endif /* LOGIC_SHELL_H_ */

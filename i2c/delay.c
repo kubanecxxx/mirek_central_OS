@@ -69,13 +69,17 @@ bool_t delay_get(void)
 void _delay_dalas(uint8_t channel, uint8_t value)
 {
 	uint8_t txbuf[2];
-	bool_t prev;
+	eff_loop_t prev;
 
-	if (channel == DAL_POTVOLUME)
+	if (channel == DAL_POTVOLUME && serial_getLoopState() == eff_loop_enabled)
 	{
-		prev = delay_get();
+		prev = eff_loop_enabled;
 		serial_loopBypass();
 		chThdSleepMilliseconds(100);
+	}
+	else
+	{
+		prev = eff_loop_bypass;
 	}
 
 	txbuf[0] = channel;
@@ -84,7 +88,7 @@ void _delay_dalas(uint8_t channel, uint8_t value)
 	i2cMasterTransmit(&I2CD1, DELAY_DAL, txbuf, 2, NULL, 0);
 	i2cReleaseBus(&I2CD1);
 
-	if (prev == TRUE && channel == DAL_POTVOLUME)
+	if (prev == eff_loop_enabled && channel == DAL_POTVOLUME)
 	{
 		chThdSleepMilliseconds(150);
 		serial_loopOn();

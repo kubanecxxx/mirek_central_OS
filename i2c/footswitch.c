@@ -8,6 +8,7 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "footswitch.h"
+#include "logic_types.h"
 
 /**
  * @addtogroup FOOTSWITCH
@@ -23,6 +24,7 @@ Thread * foot_thd;
 static volatile foot_t footswitch;
 foot_t foot_switch;
 EVENTSOURCE_DECL(event_i2c_buttons);
+extern const logic_base_t * base;
 
 /* Private function prototypes -----------------------------------------------*/
 static WORKING_AREA(wa_i2c_receive_thread,256);
@@ -207,7 +209,7 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 		chVTResetI(&vt);
 	}
 	extChannelDisableI(extp, channel);
-	chVTSetI(&vt, MS2ST(STEP_TIMEOUT), timeout_cb, NULL ); //no another interrupt in 200ms (last step)
+	chVTSetI(&vt, MS2ST(base->time), timeout_cb, NULL ); //no another interrupt in 200ms (last step)
 	chVTSetI(&vt2, MS2ST(30), (vtfunc_t) glitch, extp);
 
 	chEvtSignalFlagsI(foot_thd, EVENT_ID);

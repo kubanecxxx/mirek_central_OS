@@ -59,13 +59,13 @@ tlac_hned hned
 
 remap rem1
 rem_tlacitko tri
-rem_novy harm
-rem_stary detx
+rem_jedna harm
+rem_dva detx
 
 remap rem2
 rem_tlacitko ctyri
-rem_novy harm2
-rem_stary detx2
+rem_jedna harm2
+rem_dva detx2
 
 funkce harm2
 fun_podminka 2
@@ -76,6 +76,9 @@ funkce detx2
 fun_podminka 2
 fun_efekty phaser off
 fun_efekty detox on
+
+bend 2500 5 5
+time 200
 
 close
 

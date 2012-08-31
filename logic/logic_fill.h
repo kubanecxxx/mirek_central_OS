@@ -64,6 +64,9 @@ void cmd_button_hold(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_button_now(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_button_call(BaseSequentialStream *chp, int argc, char *argv[]);
 
+void cmd_bend(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_time(BaseSequentialStream *chp, int argc, char *argv[]);
+
 #ifdef __cplusplus
 }
 #endif

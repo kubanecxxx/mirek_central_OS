@@ -24,14 +24,9 @@
 #include "ch.h"
 #include "hal.h"
 #include "shell.h"
-
-#include "ssd1289/ssd1289_lld.h"
-#include "ssd1289/print.h"
 #include "touch.h"
-
 #include "i2c_user.h"
 #include "usb_user.h"
-#include "rs232.h"
 #include "switch_master.h"
 #include "logic_use.h"
 #include "logic_types.h"

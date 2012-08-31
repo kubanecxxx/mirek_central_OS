@@ -141,12 +141,12 @@ static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 		else if (!strcmp(argv[0], "mode"))
 			special.harmonist.mode = harm_modeR(temp, 1);
 		else
-			SHELL_ERROR(SHELL_HARMONIST);
+			SHELL_ERROR_USER(SHELL_HARMONIST);
 		logic_specific(&special);
 	}
 	else
 	{
-		SHELL_ERROR(SHELL_HARMONIST);
+		SHELL_ERROR_USER(SHELL_HARMONIST);
 	}
 
 }
@@ -185,12 +185,12 @@ static void cmd_delay(BaseSequentialStream *chp, int argc, char *argv[])
 		}
 		else
 		{
-			SHELL_ERROR(SHELL_DELAY);
+			SHELL_ERROR_USER(SHELL_DELAY);
 		}
 		logic_specific(&special);
 	}
 	else
-		SHELL_ERROR(SHELL_DELAY);
+		SHELL_ERROR_USER(SHELL_DELAY);
 }
 #endif
 
@@ -199,7 +199,7 @@ static void cmd_relay(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc != 2)
 	{
-		SHELL_ERROR(SHELL_RELAY);
+		SHELL_ERROR_USER(SHELL_RELAY);
 		return;
 	}
 
@@ -216,7 +216,7 @@ static void cmd_opto(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc != 2)
 	{
-		SHELL_ERROR(SHELL_OPTO);
+		SHELL_ERROR_USER(SHELL_OPTO);
 		return;
 	}
 
@@ -236,7 +236,7 @@ static void cmd_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 
 	if (argc != 2)
 	{
-		SHELL_ERROR(SHELL_MARSHALL);
+		SHELL_ERROR_USER(SHELL_MARSHALL);
 		return;
 	}
 
@@ -264,7 +264,7 @@ static void cmd_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 	}
 	else
 	{
-		SHELL_ERROR(SHELL_MARSHALL);
+		SHELL_ERROR_USER(SHELL_MARSHALL);
 		return;
 	}
 	logic_marshallSetup(&marsh);

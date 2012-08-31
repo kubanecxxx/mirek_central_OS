@@ -17,8 +17,10 @@ extern "C"
 /* Includes ------------------------------------------------------------------*/
 #include "chprintf.h"
 /* Exported types ------------------------------------------------------------*/
+typedef enum {eff_loop_enabled, eff_loop_bypass} eff_loop_t;
 /* Exported constants --------------------------------------------------------*/
 extern BaseSequentialStream * marshall;
+extern eff_loop_t _loop;
 /* Exported macro ------------------------------------------------------------*/
 /**
  * @brief výběr kanálu s gainem
@@ -57,12 +59,14 @@ extern BaseSequentialStream * marshall;
  * @brief Zapne efektovou smyčku
  * @ingroup RS232
  */
-#define serial_loopOn() chprintf(marshall,"loop on\r\n\r\n"); SULIN
+#define serial_loopOn() chprintf(marshall,"loop on\r\n\r\n"); _loop = eff_loop_enabled; SULIN
 /**
  * @brief Vypne efektovou smyčku (true bypass)
  * @ingroup RS232
  */
-#define serial_loopBypass() chprintf(marshall,"loop off\r\n\r\n"); SULIN
+#define serial_loopBypass() chprintf(marshall,"loop off\r\n\r\n"); _loop = eff_loop_bypass; SULIN
+
+#define serial_getLoopState() (_loop)
 /* Exported functions --------------------------------------------------------*/
 void serial_init(void);
 

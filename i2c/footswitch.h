@@ -61,8 +61,6 @@ typedef struct
 #define PCA_OUTPUT  0
 #define PCA_INPUT	1
 
-#define STEP_TIMEOUT 500
-
 /*
  * buttons event ID
  */

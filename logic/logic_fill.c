@@ -49,6 +49,7 @@ typedef struct
 	logic_function_t * function;
 	logic_remap_t * remap;
 	logic_button_t * button;
+	uint16_t zmrseno;
 } fill_temp_t;
 
 /* Private define ------------------------------------------------------------*/
@@ -184,18 +185,9 @@ void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	if (thd_logic_blinking != NULL )
 	{
 		chThdTerminate(thd_logic_blinking);
-		while (!chThdTerminated(thd_logic_blinking))
-		{
+		while(!chThdTerminated(thd_logic_blinking))
 			chThdSleepMilliseconds(100);
-		}
-
 	}
-	/*if (thd_logic_scan)
-	 {
-	 chThdTerminate(thd_logic_scan);
-	 while (!chThdTerminated(thd_logic_scan))
-	 ;
-	 }*/
 
 //smazat flašku a připravit pro zápis
 	logic_flashErase(FLASH_ADDRESS_START, FLASH_ADDRESS_STOP );
@@ -204,11 +196,13 @@ void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 //vymazat cache
 	fill_actives.base.bankCount = 0;
 	fill_actives.base.banks = NULL;
+	fill_actives.base.time = 300;
 	fill_actives.bank = NULL;
 	fill_actives.button = NULL;
 	fill_actives.channel = NULL;
 	fill_actives.function = NULL;
 	fill_actives.remap = NULL;
+	fill_actives.zmrseno = 0;
 
 	heap_bank_init();
 }
@@ -229,8 +223,15 @@ void cmd_closeLogic(BaseSequentialStream *chp, int argc, char *argv[])
 
 //todo uvolnit paměť
 
-	if (chp != NULL )
-		chprintf(chp, "Okej");
+	if (fill_actives.zmrseno == 0)
+		chprintf(chp, "\r\nOkej (kontroluje jenom parametry prikazu ale samotny nazvy \
+prikazu ne, projdi si to jesli se nevratilo neco s otaznikem)\n\r\n\r");
+	else
+		chprintf(chp, "\r\nChyba!!!!!!!!!!!!! \n\r\n\r Pocet chyb: %d\n\r",fill_actives.zmrseno);
+
+	/*
+	 * software reset
+	 */
 
 }
 
@@ -264,6 +265,10 @@ void cmd_bankAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		temp->name = NULL;
 		temp->remapCount = 0;
 		temp->remaps = NULL;
+
+		temp->bend.volume = 2000;
+		temp->bend.key = 5;
+		temp->bend.harmony = 3;
 
 		heap_channel_init();
 		heap_function_init();
@@ -935,3 +940,28 @@ void cmd_button_call(BaseSequentialStream *chp, int argc, char *argv[])
 
 }
 
+void cmd_bend(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 3)
+	{
+		fill_actives.bank->bend.volume = atoi(argv[0]);
+		fill_actives.bank->bend.key = atoi(argv[1]);
+		fill_actives.bank->bend.harmony = atoi(argv[2]);
+	}
+	else
+	{
+		SHELL_ERROR(SHELL_FILL_BEND);
+	}
+}
+
+void cmd_time(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 1)
+	{
+		fill_actives.base.time = atoi(argv[0]);
+	}
+	else
+	{
+		SHELL_ERROR(SHELL_FILL_TIME);
+	}
+}

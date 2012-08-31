@@ -11,6 +11,7 @@
 #include "framework_button.h"
 #include "logic_types.h"
 #include "ssd1289_port.h"
+#include "logic_flash.h"
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -37,17 +38,22 @@ void gui_putBankScreen(void)
 	} while (but != NULL );
 }
 
-void gui_bankScreenInit(touch_callback cb)
+bool_t gui_bankScreenInit(touch_callback cb)
 {
 	/*
 	 * alokovat paměť pro tlačitka s bankou, vytvořit tlačitka a registrovat
 	 */
 
-	tft_ClearScreen(LCD_BLACK);
-
 	uint8_t i;
 	uint16_t y = 30;
 	framework_button_t * temp;
+
+	if (base->banks != (logic_bank_t *) FLASH_BANK_ADDRESS)
+	{
+
+		return FALSE;
+	}
+
 	for (i = 0; i < base->bankCount; i++)
 	{
 		temp = (framework_button_t *) chCoreAlloc(sizeof(framework_button_t));
@@ -69,4 +75,5 @@ void gui_bankScreenInit(touch_callback cb)
 		if (i == 0)
 			button_first = temp;
 	}
+	return TRUE;
 }

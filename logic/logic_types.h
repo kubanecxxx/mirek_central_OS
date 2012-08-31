@@ -344,6 +344,17 @@ typedef struct
 } logic_remap_t;
 
 /**
+ * @brief nastavení bendu v bance
+ * @ingroup LOGIC_HL
+ */
+typedef struct
+{
+	uint16_t volume;
+	uint8_t key;
+	uint8_t harmony;
+} logic_bend_t;
+
+/**
  * @brief celá banka
  * @ingroup LOGIC_HL
  *
@@ -365,6 +376,7 @@ typedef struct
 	logic_function_t * functions;
 	logic_remap_t * remaps;
 	logic_button_t * buttons;
+	logic_bend_t bend;
 } logic_bank_t;
 
 /**
@@ -380,6 +392,7 @@ typedef struct
 	uint16_t bankCount;
 	///sada pointrů
 	logic_bank_t * banks;
+	uint16_t time;
 } logic_base_t;
 
 typedef struct
@@ -388,73 +401,48 @@ typedef struct
 	uint8_t activeChannel;
 } logic_active_t;
 
-#define SHELL_ERROR(string)	chprintf(chp,string)
+#define SHELL_ERROR(string)	chprintf(chp,string); \
+	fill_actives.zmrseno++
+
+#define SHELL_ERROR_USER(string)	chprintf(chp,string)
 
 /*
  * sada chybovéch hlášení v šelu - normálni přikazy
  */
-#define SHELL_HARMONIST "Pouziti: bud jeden argument on/off, nebo prvni \
-		argument volume(0-4095); key(0-11); harmony(0-10); mode(0-4) a jeho hodnota\n"
-#define SHELL_DELAY "Pouziti: bud jeden argument on/off, nebo prvni argument\
-	volume; time a jeho hodnota 0-255\n"
-#define SHELL_RELAY "Pouziti: dva argumenty, prvni cislo rele a druhej 0/1 (vypnout/zapnout); \
-	cisla rele: \n 0 - zlute overdrive \n 1 - wah \n 2 - compresor \n 3 - phaser \n 4 - smrcka \
-	overdrive \n 5 - chorus \n 6 - detox \n (jenom ovladani pres rele)"
-#define SHELL_OPTO "Pouziti: dva argumetny, prvni je cislo efektu (0 - overdrive, 1 - tuner) \
-	a druhej je 0/1 (jenom ovladani pres optocleny)"
-#define SHELL_MARSHALL "Pouziti: dva argumenty prvni volume; gain; loop; mute; high; a druhej \
-	cislo 2-vypnout; 3-zapnout, gain a volume 1-4"
+#define SHELL_HARMONIST "Pouziti: bud jeden argument on/off, nebo prvni argument volume(0-4095); key(0-11); harmony(0-10); mode(0-4) a jeho hodnota\n"
+#define SHELL_DELAY "Pouziti: bud jeden argument on/off, nebo prvni argument volume; time a jeho hodnota 0-255\n"
+#define SHELL_RELAY "Pouziti: dva argumenty, prvni cislo rele a druhej 0/1 (vypnout/zapnout); cisla rele: \n 0 - zlute overdrive \n 1 - wah \n 2 - compresor \n 3 - phaser \n 4 - smrcka overdrive \n 5 - chorus \n 6 - detox \n (jenom ovladani pres rele)\n"
+#define SHELL_OPTO "Pouziti: dva argumetny, prvni je cislo efektu (0 - overdrive, 1 - tuner) a druhej je 0/1 (jenom ovladani pres optocleny)\n"
+#define SHELL_MARSHALL "Pouziti: dva argumenty prvni volume; gain; loop; mute; high; a druhej cislo 2-vypnout; 3-zapnout, gain a volume 1-4\n"
 
 /*
  * sada chybovech hlaseni pro plneni
  */
 
-#define SHELL_FILL_BANK "Vytvori novou banku. Pouziti: jeden argument - originalni jmeno banky (bude i na tlacitku)"
+#define SHELL_FILL_BANK "Vytvori novou banku. Pouziti: jeden argument - originalni jmeno banky (bude i na tlacitku)\n"
 
-#define SHELL_FILL_CHANNEL_ADD "Vytvori novej kanal, defaultne vypne vsechny efekty \
-	marshala nastavi na preamp 1 a volume 1 , zapne smycku a nastavi high sens\
-	Pouziti: jeden argument - originalni jmeno kanalu (bude i na displeju)"
-#define SHELL_FILL_CHANNEL_MARS "Do vytvorenyho kanalu nastavi marshala. Pouziti: vzdy dva argumenty,\
-	prvni muze byt preamp; volume; mute; sens; smycky \n \
-	preamp a volume potom 1-4; mute on/off; sens high/low; smycka on/off"
-#define SHELL_FILL_CHANNEL_EFFS "Do vytvorenyho kanalu nastavi ktery efekty zapnout a ktery vypnout. \
-	Pouziti: vzdy dva argumenty prvni jmeno efektu (superdrive_true, wah, compresor \
-		phaser, overdrive, chorus, detox, superdrive_norm, tuner, dd3, harmonist) nebo cislo efektu 0 - 15\
-		(0-6 jsou uz pojmenovany a pouzity, 7 a vejs je rezerva k dalsimu pouziti v budoucnu)"
-#define SHELL_FILL_CHANNEL_SPECIAL "Pouziti: nastaveni delaye a harmonistu, vzdy tri argumenty, \n \
-		prvni je delay nebo harmonist \n delay ma potom dalsi nastaveni volume a time + jejich hodnota 0-255 \n \
-		harmonist ma nastaveni mode(0-4), key(0-11), harmony(0-10), volume(0-4095)"
+#define SHELL_FILL_CHANNEL_ADD "Vytvori novej kanal, defaultne vypne vsechny efekty marshala nastavi na preamp 1 a volume 1 , zapne smycku a nastavi high sens Pouziti: jeden argument - originalni jmeno kanalu (bude i na displeju)\n"
+#define SHELL_FILL_CHANNEL_MARS "Do vytvorenyho kanalu nastavi marshala. Pouziti: vzdy dva argumenty, prvni muze byt preamp; volume; mute; sens; smycky \n preamp a volume potom 1-4; mute on/off; sens high/low; smycka on/off\n"
+#define SHELL_FILL_CHANNEL_EFFS "Do vytvorenyho kanalu nastavi ktery efekty zapnout a ktery vypnout. Pouziti: vzdy dva argumenty prvni jmeno efektu (superdrive_true, wah, compresor phaser, overdrive, chorus, detox, superdrive_norm, tuner, dd3, harmonist) nebo cislo efektu 0 - 15	(0-6 jsou uz pojmenovany a pouzity, 7 a vejs je rezerva k dalsimu pouziti v budoucnu)\n"
+#define SHELL_FILL_CHANNEL_SPECIAL "Pouziti: nastaveni delaye a harmonistu, vzdy tri argumenty, \n 	prvni je delay nebo harmonist \n delay ma potom dalsi nastaveni volume a time + jejich hodnota 0-255 \n harmonist ma nastaveni mode(0-4), key(0-11), harmony(0-10), volume(0-4095)\n"
 
-#define SHELL_FILL_FUNC_ADD "Vytvori novou funkci. Pouziti: jeden argument - originalni jmeno funkce, \
-	jeji defaultni nastaveni je ze nic nemeni"
-#define SHELL_FILL_FUNC_MARS "Nastaveni marshala. Pouziti: dva argumenty preamp/volume/mute/sens/smycka, \
-	volume a preamp 1-4, 0 neudela nic; zbytek on/off/toggle"
-#define SHELL_FILL_FUNC_EFFS "Nastaveni efektu ve funkci. Pouziti: dva argumenty, prvni je jmeno efektu jako \
-	v kanalu (nebudu to sem prepisovat jak trouba znova) a druhej argument je on/off/toggle \
-	(cokoliv jinyho neudela nic)"
-#define SHELL_FILL_FUNC_LED "Nastaveni barvy ledky ktera ma sledovat funkci. \
-	Pouziti: jeden argument barva (zelena/zluta/obe) cokoliv jinyho neudela nic"
-#define SHELL_FILL_FUNC_WATCH "Nastaveni kterej efekt ma funkce ledka sledovat jesli\
-	je zapnutej nebo ne. Pouziti: jeden argument jmeno efektu tak jako v kanalu a funkci\
-	(nebudu to zase cely prepisovat)"
-#define SHELL_FILL_FUNC_CONDITION "nastaveni kanalu v kterym ma funkce fungovat. Pouziti:\
-	jenom jeden argument cislo kanalu"
+#define SHELL_FILL_FUNC_ADD "Vytvori novou funkci. Pouziti: jeden argument - originalni jmeno funkce, jeji defaultni nastaveni je ze nic nemeni\n"
+#define SHELL_FILL_FUNC_MARS "Nastaveni marshala. Pouziti: dva argumenty preamp/volume/mute/sens/smycka, volume a preamp 1-4, 0 neudela nic; zbytek on/off/toggle\n"
+#define SHELL_FILL_FUNC_EFFS "Nastaveni efektu ve funkci. Pouziti: dva argumenty, prvni je jmeno efektu jako v kanalu (nebudu to sem prepisovat jak trouba znova) a druhej argument je on/off/toggle (cokoliv jinyho neudela nic)\n"
+#define SHELL_FILL_FUNC_LED "Nastaveni barvy ledky ktera ma sledovat funkci. Pouziti: jeden argument barva (zelena/zluta/obe) cokoliv jinyho neudela nic\n"
+#define SHELL_FILL_FUNC_WATCH "Nastaveni kterej efekt ma funkce ledka sledovat jesli je zapnutej nebo ne. Pouziti: jeden argument jmeno efektu tak jako v kanalu a funkci (nebudu to zase cely prepisovat)\n"
+#define SHELL_FILL_FUNC_CONDITION "nastaveni kanalu v kterym ma funkce fungovat. Pouziti: jenom jeden argument cislo kanalu\n"
 
+#define SHELL_FILL_REMAP_ADD "Vytvori novy premapovani ktery muze mezi sebou prohodit na tlacitku dve funkce. Pouziti jenom jeden argument jmeno remapu\n"
+#define SHELL_FILL_REMAP_CONDITION "Nastavi cislo kanalu v kterym ma remap fungovat jeden argument cislo kanalu\n"
+#define SHELL_FILL_REMAP_BUTTON "Nastavi na kterym tlacitku ma premapovavat, jeden argument jmeno tlacitka\n"
+#define SHELL_FILL_REMAP_OLD "Nastavi ktera funkce se ma prohodit, argument je meno funkce\n"
 
-#define SHELL_FILL_REMAP_ADD "Vytvori novy premapovani ktery muze mezi sebou prohodit na tlacitku \
-	dve funkce. Pouziti jenom jeden argument jmeno remapu"
-#define SHELL_FILL_REMAP_CONDITION "Nastavi cislo kanalu v kterym ma remap fungovat \
-	jeden argument cislo kanalu"
-#define SHELL_FILL_REMAP_BUTTON "Nastavi na kterym tlacitku ma premapovavat, jeden \
-	argument jmeno tlacitka"
-#define SHELL_FILL_REMAP_OLD "Nastavi ktera funkce se ma prohodit, argument je meno funkce"
+#define SHELL_FILL_BUTTON_ADD "Vytvori novy tlacitko, 3 argumenty - originalni jmeno tlacitka, cislo tlacitka na liste 1-8, a pocet zmacknuti\n"
+#define SHELL_FILL_BUTTON_NOW "Nastavi ve vytvorenym tlacitku jesli bude reagovat hned, nebo az po casovym limitu, pouziti jeden argument hned/potom\n"
+#define SHELL_FILL_BUTTON_CALL "Prida do tlacitka co ma volat, jeden argument - nekde uz pouzity originalni jmeno funkce/remapu/kanalu, radek se muze napsat vickrat pod sebe s ruznema volanima\n"
 
-
-#define SHELL_FILL_BUTTON_ADD "Vytvori novy tlacitko, 3 argumenty - originalni jmeno tlacitka, \
-	cislo tlacitka na liste 1-8, a pocet zmacknuti"
-#define SHELL_FILL_BUTTON_NOW "Nastavi ve vytvorenym tlacitku jesli bude reagovat hned, nebo az po\
-	casovym limitu, pouziti jeden argument hned/potom"
-#define SHELL_FILL_BUTTON_CALL "Prida do tlacitka co ma volat, jeden argument - nekde uz pouzity originalni\
-	jmeno funkce/remapu/kanalu, radek se muze napsat vickrat pod sebe s ruznema volanima"
+#define SHELL_FILL_BEND "Nastaveni bendu v bance. Pouziti 3 parametry, volume(0-4095), key (0-11), harmony(0-10)\n"
+#define SHELL_FILL_TIME "Jeden argument - kolik ms ma cekat\n"
 
 #endif /* LOGIC_TYPES_H_ */

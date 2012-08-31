@@ -148,13 +148,13 @@ extern bool_t _harm_enabled;
  * DAC channels
  */
 ///@brief nastavení hlasitosi harmonizéru
-#define harm_volume(vol) vol < 4096 ? _dac_write(CHAN_VOLUME,vol) : NULL
+#define harm_volume(vol)  _dac_write(CHAN_VOLUME,vol)
 ///@brief výběr módu harmonizéru
-#define harm_mode(x) x < HARM_MODE_COUNT ? _dac_write(CHAN_MODE,x) : NULL
+#define harm_mode(x)  _dac_write(CHAN_MODE,HARMONIZER.MODE.a[x])
 ///@brief výběr key
-#define harm_key(x)  x < HARM_KEY_COUNT ? _dac_write(CHAN_KEY,x) :NULL
+#define harm_key(x)   _dac_write(CHAN_KEY,HARMONIZER.KEY.a[x])
 ///@brief výběr harmony
-#define harm_harmony(x) x < HARM_SHIFT_COUNT ? _dac_write(CHAN_HARM,x) :NULL
+#define harm_harmony(x) _dac_write(CHAN_HARM,HARMONIZER.HARMONY.a[x])
 
 ///@brief výběr hlasitosti + odpověď když se něco pojebe
 #define harm_volumeR(vol,response) vol < 4096 ? vol : response
@@ -170,7 +170,7 @@ extern bool_t _harm_enabled;
 ///@brief PCA input EFF
 #define harm_getInput_EFF(inputs) ((inputs >> HARM_EFF) & 1)
 ///@brief PCA input BUT
-#define harm_getInput_BUT(inputs) ((inputs >> HARM_BUT) & 1)
+#define harm_getInput_BUT(inputs) (!((inputs >> HARM_BUT) & 1))
 ///@brief PCA input LED
 #define harm_getInput_LED(inputs) ((inputs >> HARM_LED) & 1)
 

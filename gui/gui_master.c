@@ -57,6 +57,8 @@ static void bank_callback(framework_button_t * but)
 
 void gui_init(void)
 {
+	bool_t state;
+
 	tft_InitLCD();
 	touch_init();
 	tft_ClearScreen(LCD_BLUE);
@@ -64,9 +66,13 @@ void gui_init(void)
 	palSetPad(GPIOD, 12);
 
 	gui_mainScreenInit(tobanks_callback);
-	gui_bankScreenInit(bank_callback);
+	state = gui_bankScreenInit(bank_callback);
 
-	gui_putMainScreen();
+	if (state == TRUE)
+		gui_putMainScreen();
+	else
+		disp_PutsStringBackground("Neni konfigurace", 10, 10, LCD_WHITE,
+				LCD_BLACK, 16);
 }
 
 void gui_thread(void)
