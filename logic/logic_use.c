@@ -22,14 +22,17 @@
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-WORKING_AREA(wa_blinking, 256);
-WORKING_AREA(wa_scan, 512);
+static WORKING_AREA(wa_blinking, 256);
+static WORKING_AREA(wa_scan, 512);
+static WORKING_AREA(wa_specific,256);
 const logic_base_t * base = (logic_base_t *) FLASH_BASE_ADDRESS;
 logic_active_t active;
+static logic_specific_t _specific;
 
 /* Private function prototypes -----------------------------------------------*/
 static void logic_blinkingThread(void * data);
 static void logic_scanThread(void * data);
+static void logic_specificThread(void *data);
 static void logic_button(const logic_bank_t * bank, const foot_t * button,
 		eventmask_t mask);
 static void logic_channel(const logic_channel_t * arg,
@@ -37,6 +40,7 @@ static void logic_channel(const logic_channel_t * arg,
 
 Thread * thd_logic_scan = NULL;
 Thread * thd_logic_blinking = NULL;
+Thread * thd_logic_specific = NULL;
 
 /* Private functions ---------------------------------------------------------*/
 void logic_init(void)
@@ -60,6 +64,9 @@ void logic_init(void)
 	{
 		return;
 	}
+
+	thd_logic_specific = chThdCreateStatic(&wa_specific, sizeof(wa_specific),
+			NORMALPRIO, (tfunc_t) logic_specificThread, NULL );
 
 	active.bank = base->banks;
 
@@ -227,9 +234,15 @@ static void logic_channelLeds(uint8_t pin, logic_ledColor_t coun)
 
 	//leds
 	if (coun == COL_YELLOW)
+	{
+		green = 0;
 		yellow = pin;
+	}
 	else if (coun == COL_GREEN)
+	{
+		yellow = 0;
 		green = pin;
+	}
 	else if (coun == COL_BOTH)
 	{
 		yellow = pin;
@@ -258,16 +271,18 @@ static void logic_channel(const logic_channel_t * arg,
 	uint8_t temp_opto = (temp >> 30) & 0b11;
 	temp &= 0x0FFFFFFF;
 
-	logic_channelLeds(but->button.pin, but->button.count);
-
-	//setup delay and harmonist
-	logic_specific(arg->special);
-
 	//relays
 	switch_setRelays(temp);
 
 	//optocouplers
 	opto_setEffects(temp_opto);
+
+	logic_marshallSetup(&arg->marshall);
+
+	//setup delay and harmonist
+	logic_specific(arg->special);
+
+	logic_channelLeds(but->button.pin, but->button.count);
 
 	//harmonist
 	if (i2c_temp.s.bit28)
@@ -280,8 +295,6 @@ static void logic_channel(const logic_channel_t * arg,
 		delay_on();
 	else
 		delay_off();
-
-	logic_marshallSetup(&arg->marshall);
 
 	logic_channelLeds(but->button.pin, but->button.count);
 	gui_putChannel(arg);
@@ -300,11 +313,13 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 	{
 		if (marsh->effLoop == EFF_ENABLE)
 		{
-			serial_loopOn();
+			serial_loopOn()
+			;
 		}
 		else
 		{
-			serial_loopBypass();
+			serial_loopBypass()
+			;
 		}
 	}
 
@@ -312,11 +327,13 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 	{
 		if (marsh->high == EFF_ENABLE)
 		{
-			serial_channelHigh();
+			serial_channelHigh()
+			;
 		}
 		else
 		{
-			serial_channelLow();
+			serial_channelLow()
+			;
 		}
 	}
 
@@ -324,11 +341,13 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 	{
 		if (marsh->mute == EFF_ENABLE)
 		{
-			serial_mute();
+			serial_mute()
+			;
 		}
 		else
 		{
-			serial_unmute();
+			serial_unmute()
+			;
 		}
 	}
 
@@ -424,17 +443,11 @@ static void logic_remap(const logic_bank_t * bank, const logic_remap_t * remap,
  */
 void logic_specific(const logic_specific_t * arg)
 {
-	if (arg == NULL )
+	if (arg == NULL || thd_logic_specific == NULL )
 		return;
 
-	delay_time(arg->delay.time);
-	delay_volume(arg->delay.volume);
-
-	harm_mode(arg->harmonist.mode);
-	harm_key(arg->harmonist.key);
-	harm_volume(arg->harmonist.volume);
-	harm_harmony(arg->harmonist.harmony);
-
+	_specific = *arg;
+	chEvtSignalFlags(thd_logic_specific, 1 << 24);
 	gui_putSpecial(arg);
 }
 
@@ -498,6 +511,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			channel = (logic_channel_t *) call->call;
 			logic_channel(channel, but);
 			active.activeChannel = channel->index;
+			active.activeChannelName = channel->name;
 
 		}
 		else if (call->callType == callType_function)
@@ -665,5 +679,25 @@ static void logic_blinkingThread(void * data)
 		foot_SetLedsBoth(yellow_i, green_i);
 
 		chThdSleepMilliseconds(200);
+	}
+}
+
+static void logic_specificThread(void *data)
+{
+	(void) data;
+	chRegSetThreadName("specific");
+	logic_specific_t * arg = &_specific;
+
+	while (TRUE)
+	{
+		chEvtWaitAny(1 << 24);
+
+		delay_time(arg->delay.time);
+		delay_volume(arg->delay.volume);
+
+		harm_mode(arg->harmonist.mode);
+		harm_key(arg->harmonist.key);
+		harm_volume(arg->harmonist.volume);
+		harm_harmony(arg->harmonist.harmony);
 	}
 }

@@ -1,0 +1,202 @@
+//0 zlutej
+//1 wah
+//2 compresor
+//3 phaser
+//4 smrcka drive
+//5 chorus
+//6 detox 
+//28 harmonist
+//29 delay
+//30 drive
+//31 tuner
+
+open
+banka jednicka
+
+kanal cistej
+kan_marshall preamp 1
+kan_marshall volume 1
+kan_marshall smycka on
+kan_efekty chorus on
+kan_efekty dd3 on
+kan_efekty compresor on
+kan_marshall sens low
+kan_efekty detox on
+kan_special delay volume 70
+kan_special delay time 10
+
+kanal cistej2
+kan_marshall preamp 1
+kan_marshall volume 1
+kan_marshall smycka on
+kan_efekty chorus on
+kan_efekty dd3 on
+kan_special delay volume 70
+kan_special delay time 10
+
+kanal crunch
+kan_marshall preamp 2
+kan_marshall volume 1
+kan_marshall smycka on
+kan_efekty dd3 on
+kan_special delay volume 70
+kan_special delay time 10
+
+kanal crunch2
+kan_marshall preamp 3
+kan_marshall volume 1
+kan_marshall smycka off
+
+kanal drive
+kan_marshall preamp 3
+kan_marshall volume 1
+kan_marshall smycka off
+kan_efekty overdrive on
+
+kanal drive2
+kan_marshall preamp 3
+kan_marshall volume 1
+kan_marshall smycka off
+kan_efekty superdrive_true on
+kan_efekty superdrive_norm on
+
+kanal mainsolo
+kan_marshall preamp 4
+kan_marshall volume 3
+kan_efekty superdrive_true on
+kan_efekty superdrive_norm on
+kan_efekty overdrive on
+kan_efekty dd3 on
+kan_special delay volume 150
+kan_special delay time 150
+
+funkce jumpcistej1
+fun_podminka cistej
+fun_marshall volume 2
+fun_special delay volume 150
+fun_special delay time 150
+
+funkce jumpcistej2
+fun_podminka cistej2
+fun_marshall volume 2
+fun_special delay volume 150
+fun_special delay time 150
+
+funkce jumpcrunch1
+fun_podminka crunch
+fun_marshall volume 2
+fun_special delay volume 150
+fun_special delay time 150
+
+funkce jumpcrunch2
+fun_podminka crunch2
+fun_marshall volume 2
+fun_special delay volume 150
+fun_special delay time 150
+fun_efekty dd3 on
+
+funkce jumpdrive1
+fun_podminka drive
+fun_marshall volume 2
+fun_special delay volume 150
+fun_special delay time 150
+fun_efekty dd3 on
+
+funkce jumpdrive2
+fun_podminka drive2
+fun_marshall volume 2
+fun_special delay volume 150
+fun_special delay time 150
+fun_efekty dd3 on
+
+funkce delaj
+fun_efekty dd3 on
+fun_special delay volume 250
+fun_special delay time 200
+
+funkce chorustoggle
+fun_efekty chorus toggle
+fun_led zelena
+fun_watch chorus
+
+funkce phasetoggle
+fun_efekty phaser toggle
+fun_led zluta
+fun_watch phaser
+
+funkce chorusTo
+fun_efekty chorus on
+fun_efekty phaser off
+
+funkce phaseTo
+fun_efekty chorus off
+fun_efekty phaser on
+
+
+
+tlacitko jedna-cistej 1 1
+tlac_nast cistej
+tlac_hned hned
+
+tlacitko jedna-cistej2 1 2
+tlac_nast cistej2
+tlac_hned hned
+
+tlacitko dva-crunch 2 1
+tlac_nast crunch
+tlac_hned hned
+
+tlacitko dva-crunch2 2 2
+tlac_nast crunch2
+tlac_hned hned
+
+tlacitko tri-drive 3 1
+tlac_nast drive
+tlac_hned hned
+
+tlacitko tri-drive2 3 2
+tlac_nast drive2
+tlac_hned hned
+
+tlacitko ctyri 4 1
+tlac_nast jumpcistej1
+tlac_nast jumpcistej2
+tlac_nast jumpcrunch1
+tlac_nast jumpcrunch2
+tlac_nast jumpdrive1
+tlac_nast jumpdrive2
+tlac_hned hned
+
+tlacitko ctyri2 4 2
+tlac_nast mainsolo
+tlac_hned hned
+
+tlacitko pet1 5 1
+tlac_nast delaj
+tlac_hned hned
+
+tlacitko sest1 6 1
+tlac_nast chorustoggle
+tlac_hned hned
+
+tlacitko sest2 6 2
+tlac_nast rem1
+tlac_nast rem2
+tlac_nast chorusTo
+tlac_hned hned
+
+remap rem1
+rem_tlacitko sest1
+rem_dva chorustoggle
+rem_jedna phasetoggle
+
+remap rem2
+rem_tlacitko sest2
+rem_dva chorusTo
+rem_jedna phaseTo
+bend 2500 5 5
+time 200
+
+close
+
+

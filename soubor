@@ -18,64 +18,16 @@ kan_marshall preamp 1
 kan_marshall volume 1
 kan_marshall smycka on
 kan_efekty chorus on
+kan_efekty dd3 on
+kan_efekty compresor on
+kan_marshall sens low
+kan_efekty detox on
+kan_special delay volume 70
+kan_special delay time 10
 
-kanal crunch
-kan_marshall preamp 2
-kan_marshall volume 2
-
-kanal drive
-kan_marshall preamp 3
-kan_marshall volume 3
-
-funkce detx
-fun_podminka 2
-fun_efekty detox toggle
-fun_led zluta
-fun_watch detox
-
-funkce harm
-fun_podminka 2
-fun_efekty phaser toggle
-fun_led zelena
-fun_watch phaser
-
-tlacitko jedna 1 1
+tlacitko jedna-cistej 1 1
 tlac_nast cistej
-
-tlacitko dva 2 1
-tlac_nast crunch
-
-tlacitko tlac-drive 3 1
-tlac_nast drive
-
-tlacitko tri 4 1
-tlac_nast detx
-
-tlacitko ctyri 4 2
-tlac_nast rem1
-tlac_nast rem2
-tlac_nast detx2
 tlac_hned hned
-
-remap rem1
-rem_tlacitko tri
-rem_jedna harm
-rem_dva detx
-
-remap rem2
-rem_tlacitko ctyri
-rem_jedna harm2
-rem_dva detx2
-
-funkce harm2
-fun_podminka 2
-fun_efekty phaser on
-fun_efekty detox off
-
-funkce detx2
-fun_podminka 2
-fun_efekty phaser off
-fun_efekty detox on
 
 bend 2500 5 5
 time 200

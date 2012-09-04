@@ -3,3 +3,4 @@ board/a.out
 build
 .dep
 doc
+.settings

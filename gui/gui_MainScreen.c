@@ -66,7 +66,7 @@ void putSpecial(const logic_specific_t * special)
 	SPEC(buffer, 5, 40);
 
 	SPEC("Harmonist: ", 5, 70);
-	chsprintf(buffer, "Vol.:%3d mode: %3d", special->harmonist.volume,
+	chsprintf(buffer, "Vol.:%3d mode:%d", special->harmonist.volume,
 			special->harmonist.mode);
 	SPEC(buffer, 5, 100);
 	chsprintf(buffer, "Key.:%3d harm: %3d", special->harmonist.key,
@@ -91,7 +91,8 @@ static void putChannel(const logic_channel_t * channel)
 	if (channel == NULL )
 		return;
 
-	SPEC(channel->name, 5, 190);
+	disp_PutsStringBackground("           ",5,190,LCD_WHITE,LCD_BLACK,16);
+	disp_PutsStringBackground(channel->name,5,190,LCD_WHITE,LCD_BLACK,16);
 }
 
 /*

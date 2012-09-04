@@ -292,7 +292,7 @@ const ShellConfig shell_cfg1 =
 #endif
 		commands };
 
-#define SHELL_WA_SIZE   THD_WA_SIZE(2048)
+static WORKING_AREA(wa_shell,8096);
 static WORKING_AREA(wa_usb_user,256);
 static void usb_user_thread(void * nic)
 {
@@ -310,11 +310,12 @@ static void usb_user_thread(void * nic)
 	{
 		if (!shelltp && (SDU1.config->usbp->state == USB_ACTIVE))
 		{
-			shelltp = shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+			shelltp = shellCreateStatic(&shell_cfg1, &wa_shell,
+					sizeof(wa_shell), NORMALPRIO);
 		}
 		else if (chThdTerminated(shelltp))
 		{
-			chThdRelease(shelltp); /* Recovers memory of the previous shell.   */
+			/* Recovers memory of the previous shell.   */
 			shelltp = NULL; /* Triggers spawning of a new shell.        */
 		}
 		chThdSleepMilliseconds(1000);
@@ -329,6 +330,6 @@ void usb_user_init(void)
 #else
 	usbDisconnectBus(serusbcfg.usbp);
 	chThdCreateStatic(&wa_usb_user, sizeof(wa_usb_user), NORMALPRIO,
-			(tfunc_t)usb_user_thread, NULL );
+			(tfunc_t) usb_user_thread, NULL );
 #endif
 }

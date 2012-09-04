@@ -61,6 +61,7 @@ static char *ltoa(char *p, long num, unsigned radix)
 
 void chsprintf(char * str, const char *fmt, ...)
 {
+	char * pico = str;
 	va_list ap;
 	char tmpbuf[MAX_FILLER + 1];
 	char *p, *s, c, filler;
@@ -78,6 +79,7 @@ void chsprintf(char * str, const char *fmt, ...)
 		if (c == 0)
 		{
 			va_end(ap);
+			*str = 0;
 			return;
 		}
 		if (c != '%')
@@ -224,6 +226,4 @@ void chsprintf(char * str, const char *fmt, ...)
 			width--;
 		}
 	}
-	str--;
-	*str = 0;
 }

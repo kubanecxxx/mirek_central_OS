@@ -138,9 +138,11 @@ logic_buttonCall_t * logic_flashWriteAllButtonCalls(const logic_bank_t * bank,
 
 		//prohledat všecky funkce,kanály,remapy
 		cant = bank->functionCount;
+		logic_function_t * func;
 		for (j = 0; j < cant; j++)
 		{
-			if (!strcmp(bank->functions[j].name, callName))
+			func = &bank->functions[j];
+			if (!strcmp(func->name, callName))
 			{
 				call->call = &bank->functions[j];
 				call->callType = callType_function;
@@ -177,7 +179,7 @@ logic_buttonCall_t * logic_flashWriteAllButtonCalls(const logic_bank_t * bank,
 	return first;
 }
 
-logic_buttonCall_t * logic_pointery[60]  __attribute__ ((section (".fixed")));
+logic_buttonCall_t * logic_pointery[60] __attribute__ ((section (".fixed")));
 
 /**
  * @ingroup logic_buttons
@@ -249,7 +251,7 @@ logic_channel_t * logic_flashWriteAllChannels(logic_bank_t * bank)
 logic_function_t * logic_flashWriteAllFunctions(logic_bank_t * bank)
 {
 	uint8_t cunt = bank->functionCount;
-	uint8_t i;
+	uint8_t i, j;
 	logic_function_t * func, *first;
 
 	for (i = 0; i < cunt; i++)
@@ -257,6 +259,16 @@ logic_function_t * logic_flashWriteAllFunctions(logic_bank_t * bank)
 		func = &bank->functions[i];
 
 		func->special = logic_flashWriteSpecial(func->special);
+
+		/*
+		 * ještě vypočitat čislokanálu ze jména
+		 */
+		for (j = 0; j < bank->channelCount; j++)
+		{
+			if (!strcmp(bank->channels[j].name, func->ChannelConditionName))
+				func->channelCondition = bank->channels[j].index;
+		}
+
 		func = logic_flashWriteFunction(func);
 
 		if (i == 0)

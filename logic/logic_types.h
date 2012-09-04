@@ -81,6 +81,7 @@ typedef union
 		bool_t bit17 :1;
 		bool_t bit18 :1;
 		bool_t bit19 :1;
+		bool_t bit20 :1;
 		bool_t bit21 :1;
 		bool_t bit22 :1;
 		bool_t bit23 :1;
@@ -138,6 +139,7 @@ typedef union
 		logic_effect_t eff12 :2;
 		logic_effect_t eff13 :2;
 		logic_effect_t eff14 :2;
+		logic_effect_t eff15 :2;
 		logic_effect_t eff16 :2;
 		logic_effect_t eff17 :2;
 		logic_effect_t eff18 :2;
@@ -239,6 +241,7 @@ typedef struct
 {
 	///jméno
 	const char * name;
+	const char * ChannelConditionName;
 	///user data - harm setup, delay setup, led setup
 	logic_dibit_t effects;
 
@@ -399,6 +402,7 @@ typedef struct
 {
 	const logic_bank_t * bank;
 	uint8_t activeChannel;
+	char * activeChannelName;
 } logic_active_t;
 
 #define SHELL_ERROR(string)	chprintf(chp,string); \
@@ -431,7 +435,7 @@ typedef struct
 #define SHELL_FILL_FUNC_EFFS "Nastaveni efektu ve funkci. Pouziti: dva argumenty, prvni je jmeno efektu jako v kanalu (nebudu to sem prepisovat jak trouba znova) a druhej argument je on/off/toggle (cokoliv jinyho neudela nic)\n"
 #define SHELL_FILL_FUNC_LED "Nastaveni barvy ledky ktera ma sledovat funkci. Pouziti: jeden argument barva (zelena/zluta/obe) cokoliv jinyho neudela nic\n"
 #define SHELL_FILL_FUNC_WATCH "Nastaveni kterej efekt ma funkce ledka sledovat jesli je zapnutej nebo ne. Pouziti: jeden argument jmeno efektu tak jako v kanalu a funkci (nebudu to zase cely prepisovat)\n"
-#define SHELL_FILL_FUNC_CONDITION "nastaveni kanalu v kterym ma funkce fungovat. Pouziti: jenom jeden argument cislo kanalu\n"
+#define SHELL_FILL_FUNC_CONDITION "nastaveni kanalu v kterym ma funkce fungovat. Pouziti: jenom jeden argument jmeno kanalu, pokud se prikaz vubec nenapise tak zadna podminka neni a pude to vzdycky\n"
 
 #define SHELL_FILL_REMAP_ADD "Vytvori novy premapovani ktery muze mezi sebou prohodit na tlacitku dve funkce. Pouziti jenom jeden argument jmeno remapu\n"
 #define SHELL_FILL_REMAP_CONDITION "Nastavi cislo kanalu v kterym ma remap fungovat jeden argument cislo kanalu\n"

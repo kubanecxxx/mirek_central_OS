@@ -123,7 +123,7 @@ static fill_temp_static_t __fill_static;
 //extern uint8_t __heap_base__[];
 /* Private function prototypes -----------------------------------------------*/
 static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
-		logic_specific_t * spec);
+		logic_specific_t ** spec);
 static void _effects_name(uint8_t * num, const char * arg, uint8_t mul);
 static void _led(const char * retezec, logic_ledColor_t * led);
 /* Private functions ---------------------------------------------------------*/
@@ -185,7 +185,7 @@ void cmd_openLogic(BaseSequentialStream *chp, int argc, char *argv[])
 	if (thd_logic_blinking != NULL )
 	{
 		chThdTerminate(thd_logic_blinking);
-		while(!chThdTerminated(thd_logic_blinking))
+		while (!chThdTerminated(thd_logic_blinking))
 			chThdSleepMilliseconds(100);
 	}
 
@@ -224,10 +224,12 @@ void cmd_closeLogic(BaseSequentialStream *chp, int argc, char *argv[])
 //todo uvolnit paměť
 
 	if (fill_actives.zmrseno == 0)
-		chprintf(chp, "\r\nOkej (kontroluje jenom parametry prikazu ale samotny nazvy \
+		chprintf(chp,
+				"\r\nOkej (kontroluje jenom parametry prikazu ale samotny nazvy \
 prikazu ne, projdi si to jesli se nevratilo neco s otaznikem)\n\r\n\r");
 	else
-		chprintf(chp, "\r\nChyba!!!!!!!!!!!!! \n\r\n\r Pocet chyb: %d\n\r",fill_actives.zmrseno);
+		chprintf(chp, "\r\nChyba!!!!!!!!!!!!! \n\r\n\r Pocet chyb: %d\n\r",
+				fill_actives.zmrseno);
 
 	/*
 	 * software reset
@@ -339,29 +341,35 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		 */
 void cmd_channel_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	uint8_t num = atoi(argv[1]);
-	logic_marshall_t * marsh = &fill_actives.channel->marshall;
-	if (argc == 2 && num < 5)
+	uint8_t num;
+	logic_marshall_t * marsh;
+	if (argc == 2)
 	{
-		if (!strcmp(argv[0], "preamp"))
+		num = atoi(argv[1]);
+		if (num < 5)
 		{
-			marsh->gain = num;
-		}
-		else if (!strcmp(argv[0], "volume"))
-		{
-			marsh->volume = num;
-		}
-		else if (!strcmp(argv[0], "mute"))
-		{
-			marsh->mute = fill_ifOn(argv[1]) ? EFF_ENABLE : EFF_DISABLE;
-		}
-		else if (!strcmp(argv[0], "sens"))
-		{
-			marsh->mute = !strcmp("high", argv[1]) ? EFF_ENABLE : EFF_DISABLE;
-		}
-		else if (!strcmp(argv[0], "smycka"))
-		{
-			marsh->effLoop = fill_ifOn(argv[1]) ? EFF_ENABLE : EFF_DISABLE;
+			marsh = &fill_actives.channel->marshall;
+			if (!strcmp(argv[0], "preamp"))
+			{
+				marsh->gain = num;
+			}
+			else if (!strcmp(argv[0], "volume"))
+			{
+				marsh->volume = num;
+			}
+			else if (!strcmp(argv[0], "mute"))
+			{
+				marsh->mute = fill_ifOn(argv[1]) ? EFF_ENABLE : EFF_DISABLE;
+			}
+			else if (!strcmp(argv[0], "sens"))
+			{
+				marsh->mute =
+						!strcmp("high", argv[1]) ? EFF_ENABLE : EFF_DISABLE;
+			}
+			else if (!strcmp(argv[0], "smycka"))
+			{
+				marsh->effLoop = fill_ifOn(argv[1]) ? EFF_ENABLE : EFF_DISABLE;
+			}
 		}
 		else
 		{
@@ -431,19 +439,19 @@ static void _effects_name(uint8_t * num, const char * arg, uint8_t mul)
  */
 void cmd_channel_special(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	_cmd_special(chp, argc, argv, fill_actives.channel->special);
+	_cmd_special(chp, argc, argv, &fill_actives.channel->special);
 }
 
 static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
-		logic_specific_t * spec)
+		logic_specific_t ** spec)
 {
 	logic_specific_t * temp = NULL;
 	if (argc == 3)
 	{
-		if (spec == NULL )
+		if (*spec == NULL )
 		{
 			temp = alloc_special();
-			spec = temp;
+			*spec = temp;
 
 			/*default setup*/
 			temp->delay.time = -1;
@@ -453,6 +461,10 @@ static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
 			temp->harmonist.key = -1;
 			temp->harmonist.mode = -1;
 			temp->harmonist.volume = -1;
+		}
+		else
+		{
+			temp = *spec;
 		}
 
 		uint16_t num = atoi(argv[2]);
@@ -598,57 +610,62 @@ void cmd_function_watch(BaseSequentialStream *chp, int argc, char *argv[])
  */
 void cmd_function_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 {
-
-	uint8_t num = atoi(argv[1]);
-	logic_marshall_t * marsh = &fill_actives.channel->marshall;
-	if (argc == 2 && num < 5)
+	uint8_t num;
+	logic_marshall_t * marsh;
+	if (argc == 2)
 	{
-		//gain a volume nula pokud se nemá nic dít - nemusim to řešit
-		if (!strcmp(argv[0], "preamp"))
+		num = atoi(argv[1]);
+		if (num < 5)
 		{
-			marsh->gain = num;
-		}
-		else if (!strcmp(argv[0], "volume"))
-		{
-			marsh->volume = num;
-		}
-		else if (!strcmp(argv[0], "mute"))
-		{
-			if (fill_ifOn(argv[1]))
-				marsh->mute = EFF_ENABLE;
-			else if (fill_ifOff(argv[1]))
-				marsh->mute = EFF_DISABLE;
-			else if (fill_ifToggle(argv[1]))
-				marsh->mute = EFF_TOGGLE;
-			else
-				marsh->mute = EFF_NOTHING;
-		}
-		else if (!strcmp(argv[0], "sens"))
-		{
-			if (fill_ifOn(argv[1]))
-				marsh->high = EFF_ENABLE;
-			else if (fill_ifOff(argv[1]))
-				marsh->high = EFF_DISABLE;
-			else if (fill_ifToggle(argv[1]))
-				marsh->high = EFF_TOGGLE;
-			else
-				marsh->high = EFF_NOTHING;
-		}
-		else if (!strcmp(argv[0], "smycka"))
-		{
-			if (fill_ifOn(argv[1]))
-				marsh->effLoop = EFF_ENABLE;
-			else if (fill_ifOff(argv[1]))
-				marsh->effLoop = EFF_DISABLE;
-			else if (fill_ifToggle(argv[1]))
-				marsh->effLoop = EFF_TOGGLE;
-			else
-				marsh->effLoop = EFF_NOTHING;
+			marsh = &fill_actives.channel->marshall;
+			//gain a volume nula pokud se nemá nic dít - nemusim to řešit
+			if (!strcmp(argv[0], "preamp"))
+			{
+				marsh->gain = num;
+			}
+			else if (!strcmp(argv[0], "volume"))
+			{
+				marsh->volume = num;
+			}
+			else if (!strcmp(argv[0], "mute"))
+			{
+				if (fill_ifOn(argv[1]))
+					marsh->mute = EFF_ENABLE;
+				else if (fill_ifOff(argv[1]))
+					marsh->mute = EFF_DISABLE;
+				else if (fill_ifToggle(argv[1]))
+					marsh->mute = EFF_TOGGLE;
+				else
+					marsh->mute = EFF_NOTHING;
+			}
+			else if (!strcmp(argv[0], "sens"))
+			{
+				if (fill_ifOn(argv[1]))
+					marsh->high = EFF_ENABLE;
+				else if (fill_ifOff(argv[1]))
+					marsh->high = EFF_DISABLE;
+				else if (fill_ifToggle(argv[1]))
+					marsh->high = EFF_TOGGLE;
+				else
+					marsh->high = EFF_NOTHING;
+			}
+			else if (!strcmp(argv[0], "smycka"))
+			{
+				if (fill_ifOn(argv[1]))
+					marsh->effLoop = EFF_ENABLE;
+				else if (fill_ifOff(argv[1]))
+					marsh->effLoop = EFF_DISABLE;
+				else if (fill_ifToggle(argv[1]))
+					marsh->effLoop = EFF_TOGGLE;
+				else
+					marsh->effLoop = EFF_NOTHING;
+			}
 		}
 		else
 		{
 			SHELL_ERROR(SHELL_FILL_FUNC_MARS);
 		}
+
 	}
 	else
 	{
@@ -661,7 +678,7 @@ void cmd_function_marshall(BaseSequentialStream *chp, int argc, char *argv[])
  */
 void cmd_function_special(BaseSequentialStream *chp, int argc, char *argv[])
 {
-	_cmd_special(chp, argc, argv, fill_actives.function->special);
+	_cmd_special(chp, argc, argv, &fill_actives.function->special);
 }
 
 /**
@@ -670,12 +687,10 @@ void cmd_function_special(BaseSequentialStream *chp, int argc, char *argv[])
 void cmd_function_prevCondition(BaseSequentialStream *chp, int argc,
 		char *argv[])
 {
-	uint8_t temp;
 	if (argc == 1)
 	{
-		temp = atoi(argv[0]);
-
-		fill_actives.function->channelCondition = temp;
+		fill_actives.function->ChannelConditionName = logic_flashWriteName(
+				argv[0]);
 	}
 	else
 	{
@@ -849,6 +864,11 @@ void cmd_buttonAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		temp->button.count = pushcount;
 
 		temp->name = logic_flashWriteName(argv[0]);
+
+		if (fill_actives.bank->buttonCount == 10)
+		{
+			temp->bit.hold = FALSE;
+		}
 
 	}
 	else
