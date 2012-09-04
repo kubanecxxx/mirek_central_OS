@@ -74,7 +74,7 @@ void _delay_dalas(uint8_t channel, uint8_t value)
 	if (channel == DAL_POTVOLUME && serial_getLoopState() == eff_loop_enabled)
 	{
 		prev = eff_loop_enabled;
-		serial_loopBypass();
+		serial_loopBypass_delay();
 		chThdSleepMilliseconds(100);
 	}
 	else
@@ -91,7 +91,7 @@ void _delay_dalas(uint8_t channel, uint8_t value)
 	if (prev == eff_loop_enabled && channel == DAL_POTVOLUME)
 	{
 		chThdSleepMilliseconds(150);
-		serial_loopOn();
+		serial_loopOn_delay();
 	}
 }
 

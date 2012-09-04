@@ -251,7 +251,9 @@ typedef struct
 	logic_marshall_t marshall;
 	logic_ledColor_t led;
 	uint8_t watchEffect;
-
+	bool_t blikat;
+	bool_t retreat;
+	logic_channel_t * prevChannel;
 } logic_function_t;
 
 /**
@@ -402,7 +404,7 @@ typedef struct
 {
 	const logic_bank_t * bank;
 	uint8_t activeChannel;
-	char * activeChannelName;
+	const char * activeChannelName;
 } logic_active_t;
 
 #define SHELL_ERROR(string)	chprintf(chp,string); \
@@ -436,6 +438,8 @@ typedef struct
 #define SHELL_FILL_FUNC_LED "Nastaveni barvy ledky ktera ma sledovat funkci. Pouziti: jeden argument barva (zelena/zluta/obe) cokoliv jinyho neudela nic\n"
 #define SHELL_FILL_FUNC_WATCH "Nastaveni kterej efekt ma funkce ledka sledovat jesli je zapnutej nebo ne. Pouziti: jeden argument jmeno efektu tak jako v kanalu a funkci (nebudu to zase cely prepisovat)\n"
 #define SHELL_FILL_FUNC_CONDITION "nastaveni kanalu v kterym ma funkce fungovat. Pouziti: jenom jeden argument jmeno kanalu, pokud se prikaz vubec nenapise tak zadna podminka neni a pude to vzdycky\n"
+#define SHELL_FILL_FUNC_BLINK "nastaveni jesli to ma blikat, jeden argument on/off\n"
+#define SHELL_FILL_FUNC_RETREAT "nastaveni jesli se ma vratit do kanalu kterej ma jako podminku pokud se stoupne 2x , parametr on/off"
 
 #define SHELL_FILL_REMAP_ADD "Vytvori novy premapovani ktery muze mezi sebou prohodit na tlacitku dve funkce. Pouziti jenom jeden argument jmeno remapu\n"
 #define SHELL_FILL_REMAP_CONDITION "Nastavi cislo kanalu v kterym ma remap fungovat jeden argument cislo kanalu\n"

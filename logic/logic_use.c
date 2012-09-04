@@ -125,16 +125,16 @@ static bool_t logic_functionLeds(const logic_function_t * arg, uint16_t pin)
 		{
 			watcha = switch_getRelay(arg->watchEffect);
 		}
-		else if (arg->watchEffect == 28)
+		else if (arg->watchEffect == 12)
 		{
 			uint8_t temp = harm_getInputs();
 			watcha = harm_getInput_LED(temp);
 		}
-		else if (arg->watchEffect == 29)
+		else if (arg->watchEffect == 13)
 		{
 			watcha = delay_get();
 		}
-		else if (arg->watchEffect == 30 || arg->watchEffect == 31)
+		else if (arg->watchEffect == 14 || arg->watchEffect == 15)
 		{
 			watcha = opto_getEffect(arg->watchEffect);
 		}
@@ -170,15 +170,13 @@ static void logic_function(const logic_function_t * arg,
 	//I2C effects 28 - harmonist ,29 - delay
 	uint64_t temp = arg->effects.w;
 	logic_dibit_t temp_i2c = arg->effects;
-	uint8_t temp_opto = (temp >> 60) & 0b1111;
-	temp &= 0x00FFFFFFFFFFFFFF;
 
 	logic_specific(arg->special);
 
 	//relays
 	uint8_t i;
 	logic_effect_t tmp;
-	for (i = 0; i < 28; i++)
+	for (i = 0; i < 12; i++)
 	{
 		tmp = temp & 0b11;
 		temp >>= 2;
@@ -191,34 +189,36 @@ static void logic_function(const logic_function_t * arg,
 			switch_toggleRelay(i);
 	}
 
-	//opto
-	for (i = 0; i < 2; i++)
-	{
-		tmp = temp_opto & 0b11;
-		temp_opto >>= 2;
+	//overdrive
+	if (temp_i2c.s.eff14 == EFF_ENABLE)
+		opto_enableEffect(0);
+	else if (temp_i2c.s.eff14 == EFF_DISABLE)
+		opto_disableEffect(0);
+	else if (temp_i2c.s.eff14 == EFF_TOGGLE)
+		opto_toggleEffect(0);
 
-		if (tmp == EFF_ENABLE)
-			opto_enableEffect(i);
-		else if (tmp == EFF_DISABLE)
-			opto_disableEffect(i);
-		else if (tmp == EFF_TOGGLE)
-			opto_toggleEffect(i);
-	}
+	//tuner
+	if (temp_i2c.s.eff15 == EFF_ENABLE)
+		opto_enableEffect(1);
+	else if (temp_i2c.s.eff15 == EFF_DISABLE)
+		opto_disableEffect(1);
+	else if (temp_i2c.s.eff15 == EFF_TOGGLE)
+		opto_toggleEffect(1);
 
 	//harmonist
-	if (temp_i2c.s.eff28 == EFF_ENABLE)
+	if (temp_i2c.s.eff12 == EFF_ENABLE)
 		harm_enable();
-	else if (temp_i2c.s.eff28 == EFF_DISABLE)
+	else if (temp_i2c.s.eff12 == EFF_DISABLE)
 		harm_disable();
-	else if (temp_i2c.s.eff28 == EFF_TOGGLE)
+	else if (temp_i2c.s.eff12 == EFF_TOGGLE)
 		harm_toggle();
 
 	//delay
-	if (temp_i2c.s.eff29 == EFF_ENABLE)
+	if (temp_i2c.s.eff13 == EFF_ENABLE)
 		delay_on();
-	else if (temp_i2c.s.eff29 == EFF_DISABLE)
+	else if (temp_i2c.s.eff13 == EFF_DISABLE)
 		delay_off();
-	else if (temp_i2c.s.eff29 == EFF_TOGGLE)
+	else if (temp_i2c.s.eff13 == EFF_TOGGLE)
 		delay_toggle();
 
 	logic_marshallSetup(&arg->marshall);
@@ -267,36 +267,45 @@ static void logic_channel(const logic_channel_t * arg,
 	uint32_t temp = arg->effects.w;
 	//I2C bits 28 - harmonist ,29 - delay
 	logic_bit_t i2c_temp = arg->effects;
-	//opto bits 30,31
-	uint8_t temp_opto = (temp >> 30) & 0b11;
-	temp &= 0x0FFFFFFF;
+	temp &= 0x0FFF;
 
 	//relays
 	switch_setRelays(temp);
 
 	//optocouplers
-	opto_setEffects(temp_opto);
+
+	if (i2c_temp.s.bit14)
+		opto_enableEffect(0);
+	else
+		opto_disableEffect(0);
+
+	if (i2c_temp.s.bit15)
+		opto_enableEffect(1);
+	else
+		opto_disableEffect(1);
 
 	logic_marshallSetup(&arg->marshall);
 
 	//setup delay and harmonist
 	logic_specific(arg->special);
 
-	logic_channelLeds(but->button.pin, but->button.count);
+	if (but != NULL )
+		logic_channelLeds(but->button.pin, but->button.count);
 
 	//harmonist
-	if (i2c_temp.s.bit28)
+	if (i2c_temp.s.bit12)
 		harm_enable();
 	else
 		harm_disable();
 
 	//delay
-	if (i2c_temp.s.bit29)
+	if (i2c_temp.s.bit13)
 		delay_on();
 	else
 		delay_off();
 
-	logic_channelLeds(but->button.pin, but->button.count);
+	if (but != NULL )
+		logic_channelLeds(but->button.pin, but->button.count);
 	gui_putChannel(arg);
 }
 
@@ -446,7 +455,14 @@ void logic_specific(const logic_specific_t * arg)
 	if (arg == NULL || thd_logic_specific == NULL )
 		return;
 
-	_specific = *arg;
+	if (!(arg->delay.time == 65535 || arg->delay.time == 65535))
+		_specific.delay = arg->delay;
+
+	if (!(arg->harmonist.harmony == 255 || arg->harmonist.key == 255
+			|| arg->harmonist.mode == 255 || arg->harmonist.volume == 65535))
+		_specific.harmonist = arg->harmonist;
+
+	//_specific = *arg;
 	chEvtSignalFlags(thd_logic_specific, 1 << 24);
 	gui_putSpecial(arg);
 }
@@ -461,6 +477,8 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 {
 	static logic_remap_t * lastRemap[10];
 	static uint8_t remap_count = 0;
+	static bool_t retreat = FALSE;
+	static logic_function_t * last_func = 0;
 	logic_button_t * but;
 	uint8_t prevChannel = active.activeChannel;
 	uint8_t i;
@@ -512,7 +530,8 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			logic_channel(channel, but);
 			active.activeChannel = channel->index;
 			active.activeChannelName = channel->name;
-
+			retreat = FALSE;
+			last_func = NULL;
 		}
 		else if (call->callType == callType_function)
 		{
@@ -520,7 +539,28 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			if (func->channelCondition == prevChannel
 					|| func->channelCondition == 0)
 			{
-				logic_function(func, but);
+				if (retreat == TRUE && last_func == func)
+				{
+					//return back
+					if (func->prevChannel != NULL )
+					{
+						logic_channel(func->prevChannel, NULL );
+						active.activeChannel = channel->index;
+						active.activeChannelName = channel->name;
+					}
+					last_func = 0;
+					retreat = FALSE;
+				}
+				else
+				{
+
+					logic_function(func, but);
+					if (func->retreat == TRUE)
+					{
+						retreat = TRUE;
+						last_func = func;
+					}
+				}
 			}
 		}
 		else if (call->callType == callType_remap)
@@ -631,11 +671,13 @@ static void logic_blinkingThread(void * data)
 							 * podivat se jesli sou sledovany efekty aktivní a rožnout ledky nebo je rozblikat
 							 */
 							uint8_t num = but->button.pin;
-							if (logic_functionLeds(_func, num))
+							if (logic_functionLeds(_func,
+									num) && _func->blikat == TRUE)
 							{
 								/*
 								 * ledkou blikat
 								 */
+
 								if (_func->led == COL_GREEN)
 								{
 									green |= num;
@@ -649,6 +691,7 @@ static void logic_blinkingThread(void * data)
 									green |= num;
 									yellow |= num;
 								}
+
 								/*
 								 * vygenerovat bitovou masku kterou pak blikat...
 								 */

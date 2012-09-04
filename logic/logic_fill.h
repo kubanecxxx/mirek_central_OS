@@ -42,6 +42,8 @@ void cmd_function_prevCondition(BaseSequentialStream *chp, int argc,
 		char *argv[]);
 void cmd_function_led(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_function_watch(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_function_blink(BaseSequentialStream *chp, int argc, char * argv[]);
+void cmd_function_retreat(BaseSequentialStream *chp, int argc, char * argv[]);
 
 /**
  * remap set of shell commands

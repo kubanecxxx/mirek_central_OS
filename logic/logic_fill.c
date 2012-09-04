@@ -363,7 +363,7 @@ void cmd_channel_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 			}
 			else if (!strcmp(argv[0], "sens"))
 			{
-				marsh->mute =
+				marsh->high =
 						!strcmp("high", argv[1]) ? EFF_ENABLE : EFF_DISABLE;
 			}
 			else if (!strcmp(argv[0], "smycka"))
@@ -425,13 +425,13 @@ static void _effects_name(uint8_t * num, const char * arg, uint8_t mul)
 		*num = 6 * mul;
 
 	else if (!strcmp(arg, "superdrive_norm"))
-		*num = 30 * mul;
+		*num = 14 * mul;
 	else if (!strcmp(arg, "tuner"))
-		*num = 31 * mul;
+		*num = 15 * mul;
 	else if (!strcmp(arg, "dd3"))
-		*num = 29 * mul;
+		*num = 13 * mul;
 	else if (!strcmp(arg, "harmonist"))
-		*num = 28 * mul;
+		*num = 12 * mul;
 }
 
 /**
@@ -526,6 +526,9 @@ void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 				temp->channelCondition = 0;
 				temp->led = 0;
 				temp->watchEffect = 0;
+				temp->blikat = FALSE;
+				temp->retreat = FALSE;
+				temp->prevChannel = NULL;
 
 				if (fill_actives.bank->functions == NULL )
 				fill_actives.bank->functions = temp;
@@ -617,7 +620,7 @@ void cmd_function_marshall(BaseSequentialStream *chp, int argc, char *argv[])
 		num = atoi(argv[1]);
 		if (num < 5)
 		{
-			marsh = &fill_actives.channel->marshall;
+			marsh = &fill_actives.function->marshall;
 			//gain a volume nula pokud se nemá nic dít - nemusim to řešit
 			if (!strcmp(argv[0], "preamp"))
 			{
@@ -696,6 +699,33 @@ void cmd_function_prevCondition(BaseSequentialStream *chp, int argc,
 	{
 		SHELL_ERROR(SHELL_FILL_FUNC_CONDITION);
 	}
+}
+
+void cmd_function_blink(BaseSequentialStream *chp, int argc, char * argv[])
+{
+	if (argc != 1)
+	{
+		SHELL_ERROR(SHELL_FILL_FUNC_BLINK);
+		return;
+	}
+
+	if (fill_ifOn(argv[0]))
+		fill_actives.function->blikat = TRUE;
+	else
+		fill_actives.function->blikat = FALSE;
+}
+
+void cmd_function_retreat(BaseSequentialStream *chp, int argc, char * argv[])
+{
+	if (argc != 1)
+	{
+		SHELL_ERROR(SHELL_FILL_FUNC_RETREAT);
+		return;
+	}
+	if (fill_ifOn(argv[0]))
+		fill_actives.function->retreat = TRUE;
+	else
+		fill_actives.function->retreat = FALSE;
 }
 
 /*--------------------------------------------------------------------*

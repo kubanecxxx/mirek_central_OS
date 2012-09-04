@@ -23,6 +23,8 @@
 {	"fun_podminka" , cmd_function_prevCondition},
 {	"fun_led" , cmd_function_led},
 {	"fun_watch" , cmd_function_watch},
+{	"fun_blink", cmd_function_blink},
+{ "fun_retreat", cmd_function_retreat},
 {	"remap", cmd_remapAdd},
 //{	"rem_led" , cmd_remap_led},
 {	"rem_podminka", cmd_remap_prevCondition},

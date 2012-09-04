@@ -266,7 +266,10 @@ logic_function_t * logic_flashWriteAllFunctions(logic_bank_t * bank)
 		for (j = 0; j < bank->channelCount; j++)
 		{
 			if (!strcmp(bank->channels[j].name, func->ChannelConditionName))
+			{
 				func->channelCondition = bank->channels[j].index;
+				func->prevChannel = &bank->channels[j];
+			}
 		}
 
 		func = logic_flashWriteFunction(func);

@@ -66,6 +66,7 @@ static void harm_thread(void * data)
 	uint8_t inputs;
 	chRegSetThreadName("harmonist");
 	eff_loop_t prev;
+	uint32_t time1,time2;
 
 	while (TRUE)
 	{
@@ -80,6 +81,7 @@ static void harm_thread(void * data)
 		 */
 		if (harm_getInput_BUT(inputs))
 		{
+			time1 = chTimeNow();
 			/*
 			 * bend
 			 */
@@ -101,6 +103,7 @@ static void harm_thread(void * data)
 
 				inputs = harm_getInputs();
 				harm_pushButton(inputs);
+				time2 = chTimeNow() - time1;
 				chThdSleepMilliseconds(50);
 			}
 			harm_releaseButton(inputs);

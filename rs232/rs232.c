@@ -27,6 +27,7 @@
 
 BaseSequentialStream * marshall = (BaseSequentialStream*) &SD2;
 eff_loop_t _loop;
+serial_marshall_state_t _marshall_state;
 /* Private function prototypes -----------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/
 

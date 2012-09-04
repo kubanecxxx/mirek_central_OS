@@ -16,6 +16,8 @@
 #include "string.h"
 #include "chsprintf.h"
 #include "logic_flash.h"
+#include "delay.h"
+#include "rs232.h"
 
 framework_button_t button_toBanks;
 
@@ -60,30 +62,53 @@ void putSpecial(const logic_specific_t * special)
 	if (special == NULL )
 		return;
 
-	SPEC("Delay: ", 5, 10);
-	chsprintf(buffer, "Vol.:%3d time: %3d", special->delay.volume,
-			special->delay.time);
-	SPEC(buffer, 5, 40);
+	if (special->delay.time != 65535 && special->delay.volume != 65535)
+	{
+		chsprintf(buffer, "Vol.:%3d time: %3d ", special->delay.volume,
+				special->delay.time);
+		SPEC(buffer, 5, 40);
+	}
 
-	SPEC("Harmonist: ", 5, 70);
-	chsprintf(buffer, "Vol.:%3d mode:%d", special->harmonist.volume,
-			special->harmonist.mode);
-	SPEC(buffer, 5, 100);
-	chsprintf(buffer, "Key.:%3d harm: %3d", special->harmonist.key,
-			special->harmonist.harmony);
-	SPEC(buffer, 5, 130);
-
+	if (special->harmonist.volume != 65535 && special->harmonist.key != 255)
+	{
+		SPEC("Harmonist: ", 5, 70);
+		chsprintf(buffer, "Vol.:%3d Mode:  %d", special->harmonist.volume,
+				special->harmonist.mode);
+		SPEC(buffer, 5, 100);
+		chsprintf(buffer, "Key :%3d Harm: %3d", special->harmonist.key,
+				special->harmonist.harmony);
+		SPEC(buffer, 5, 130);
+	}
 }
 
 static void putMarshall(const logic_marshall_t * marshall)
 {
-	if (marshall == NULL || (marshall->gain == 0 || marshall->volume == 0))
+	if (marshall == NULL )
 		return;
 
 	char buffer[30];
 
-	chsprintf(buffer, "Pre.:%3d Master:%3d", marshall->gain, marshall->volume);
+	chsprintf(buffer, "Pre.: %d Master: %d", serial_getGain(),
+			serial_getVolume());
 	SPEC(buffer, 5, 160);
+
+	disp_PutsStringBackground("           ", 5, 210, LCD_YELLOW, LCD_BLACK, 16);
+
+	if (serial_getLoopState() == eff_loop_bypass)
+		disp_PutsStringBackground("Bypass", 5, 210, LCD_GREEN, LCD_BLACK, 8);
+	else
+		disp_PutsStringBackground("Effect", 5, 210, LCD_BLUE, LCD_BLACK, 8);
+
+	if (serial_getMuteState() != FALSE)
+		disp_PutsStringBackground("Mute", 60, 210, LCD_GREEN, LCD_BLACK, 8);
+	else
+		disp_PutsStringBackground("Play", 60, 210, LCD_BLUE, LCD_BLACK, 8);
+
+	if (serial_getHighSensState() != FALSE)
+		disp_PutsStringBackground("High", 100, 210, LCD_BLUE, LCD_BLACK, 8);
+	else
+		disp_PutsStringBackground("Low ", 100, 210, LCD_GREEN, LCD_BLACK, 8);
+
 }
 
 static void putChannel(const logic_channel_t * channel)
@@ -91,8 +116,8 @@ static void putChannel(const logic_channel_t * channel)
 	if (channel == NULL )
 		return;
 
-	disp_PutsStringBackground("           ",5,190,LCD_WHITE,LCD_BLACK,16);
-	disp_PutsStringBackground(channel->name,5,190,LCD_WHITE,LCD_BLACK,16);
+	disp_PutsStringBackground("           ", 5, 190, LCD_YELLOW, LCD_BLACK, 16);
+	disp_PutsStringBackground(channel->name, 5, 190, LCD_YELLOW, LCD_BLACK, 16);
 }
 
 /*
@@ -140,6 +165,19 @@ void gui_refreshMarshall(void)
 void gui_refreshChannel(void)
 {
 	putChannel(data.channel);
+}
+
+void gui_refreshDelay(void)
+{
+	if (delay_get())
+	{
+		disp_PutsStringBackground("Delay zap.", 5, 10, LCD_GREEN, LCD_BLACK,
+				16);
+	}
+	else
+	{
+		disp_PutsStringBackground("Delay vyp.", 5, 10, LCD_BLUE, LCD_BLACK, 16);
+	}
 }
 
 void gui_mainScreenInit(touch_callback cb)

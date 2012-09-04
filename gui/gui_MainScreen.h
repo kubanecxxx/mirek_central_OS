@@ -19,5 +19,6 @@ void gui_putMarshall(const logic_marshall_t * marshall);
 void gui_refreshChannel(void);
 void gui_refreshMarshall(void);
 void gui_refreshSpecial(void);
+void gui_refreshDelay(void);
 
 #endif /* GUI_MAINSCREEN_H_ */

@@ -103,5 +103,6 @@ void gui_thread(void)
 		{
 			gui_putMainScreen();
 		}
+		gui_refreshDelay();
 	}
 }

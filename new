@@ -5,17 +5,17 @@
 //4 smrcka drive
 //5 chorus
 //6 detox 
-//28 harmonist
-//29 delay
-//30 drive
-//31 tuner
+//12 harmonist
+//13 delay
+//14 drive
+//15 tuner
 
 open
 banka jednicka
 
 kanal cistej
 kan_marshall preamp 1
-kan_marshall volume 1
+kan_marshall volume 4
 kan_marshall smycka on
 kan_efekty chorus on
 kan_efekty dd3 on
@@ -61,7 +61,7 @@ kan_efekty superdrive_true on
 kan_efekty superdrive_norm on
 
 kanal mainsolo
-kan_marshall preamp 4
+kan_marshall preamp 3
 kan_marshall volume 3
 kan_efekty superdrive_true on
 kan_efekty superdrive_norm on
@@ -75,18 +75,30 @@ fun_podminka cistej
 fun_marshall volume 2
 fun_special delay volume 150
 fun_special delay time 150
+fun_led zluta
+fun_watch 7
+fun_efekty 7 toggle
+fun_retreat on
 
 funkce jumpcistej2
 fun_podminka cistej2
 fun_marshall volume 2
 fun_special delay volume 150
 fun_special delay time 150
+fun_led zluta
+fun_watch 7
+fun_efekty 7 toggle
+fun_retreat on
 
 funkce jumpcrunch1
 fun_podminka crunch
 fun_marshall volume 2
 fun_special delay volume 150
 fun_special delay time 150
+fun_led zluta
+fun_watch 7
+fun_efekty 7 toggle
+fun_retreat on
 
 funkce jumpcrunch2
 fun_podminka crunch2
@@ -94,6 +106,10 @@ fun_marshall volume 2
 fun_special delay volume 150
 fun_special delay time 150
 fun_efekty dd3 on
+fun_led zluta
+fun_watch 7
+fun_efekty 7 toggle
+fun_retreat on
 
 funkce jumpdrive1
 fun_podminka drive
@@ -101,6 +117,10 @@ fun_marshall volume 2
 fun_special delay volume 150
 fun_special delay time 150
 fun_efekty dd3 on
+fun_led zluta
+fun_watch 7
+fun_efekty 7 toggle
+fun_retreat on
 
 funkce jumpdrive2
 fun_podminka drive2
@@ -108,29 +128,12 @@ fun_marshall volume 2
 fun_special delay volume 150
 fun_special delay time 150
 fun_efekty dd3 on
-
-funkce delaj
-fun_efekty dd3 on
-fun_special delay volume 250
-fun_special delay time 200
-
-funkce chorustoggle
-fun_efekty chorus toggle
-fun_led zelena
-fun_watch chorus
-
-funkce phasetoggle
-fun_efekty phaser toggle
 fun_led zluta
-fun_watch phaser
+fun_watch 7
+fun_efekty 7 toggle
+fun_retreat on
 
-funkce chorusTo
-fun_efekty chorus on
-fun_efekty phaser off
 
-funkce phaseTo
-fun_efekty chorus off
-fun_efekty phaser on
 
 
 
@@ -171,9 +174,74 @@ tlacitko ctyri2 4 2
 tlac_nast mainsolo
 tlac_hned hned
 
+//delaj
+
 tlacitko pet1 5 1
 tlac_nast delaj
+tlac_nast rem_delay
 tlac_hned hned
+
+funkce delaj
+fun_efekty 8 on
+fun_led zelena
+fun_watch 8
+fun_efekty dd3 on
+fun_special delay volume 250
+fun_special delay time 200
+
+funkce delajOff
+fun_efekty dd3 off
+fun_efekty 8 off
+fun_led zelena
+fun_watch 8
+
+remap rem_delay
+rem_tlacitko pet1
+rem_dva delaj
+rem_jedna delajOff
+
+//wah 
+
+funkce wahtoggle
+fun_efekty wah toggle
+fun_led zluta
+fun_watch wah
+
+tlacitko osm1 8 1
+tlac_nast wahtoggle
+tlac_hned hned
+
+//tuner
+
+kanal skuner
+kan_efekty tuner on
+kan_marshall mute on
+
+tlacitko osm3 8 3
+tlac_nast skuner
+tlac_hned hned
+
+//phase_chorus
+
+funkce chorustoggle
+fun_efekty chorus toggle
+fun_led zelena
+fun_blink on
+fun_watch chorus
+
+funkce phasetoggle
+fun_efekty phaser toggle
+fun_led zluta
+fun_blink on
+fun_watch phaser
+
+funkce chorusTo
+fun_efekty chorus on
+fun_efekty phaser off
+
+funkce phaseTo
+fun_efekty chorus off
+fun_efekty phaser on
 
 tlacitko sest1 6 1
 tlac_nast chorustoggle
@@ -194,7 +262,56 @@ remap rem2
 rem_tlacitko sest2
 rem_dva chorusTo
 rem_jedna phaseTo
-bend 2500 5 5
+
+
+//octave +-
+
+tlacitko sedm1 7 1
+tlac_nast harm+
+tlac_nast rem-harm1
+tlac_hned hned
+
+tlacitko sedm2 7 2
+tlac_nast harmOff
+tlac_hned hned
+
+funkce harmOff
+fun_efekty harmonist off
+fun_efekty 10 off
+fun_efekty 9 off
+
+
+funkce harm+
+fun_marshall smycka on
+fun_efekty harmonist on
+fun_special harmonist mode 2
+fun_special harmonist volume 1000
+fun_special harmonist key 9
+fun_special harmonist harmony 8
+fun_efekty 10 off
+fun_efekty 9 on
+fun_watch 10
+fun_led zelena
+
+funkce harm-
+fun_marshall smycka on
+fun_efekty harmonist on
+fun_special harmonist mode 2
+fun_special harmonist volume 1000
+fun_special harmonist key 9
+fun_special harmonist harmony 2
+fun_efekty 10 on
+fun_efekty 9 off
+fun_watch 9
+fun_led zluta
+
+
+remap rem-harm1
+rem_tlacitko sedm1
+rem_dva harm+
+rem_jedna harm-
+
+bend 2000 9 4
 time 200
 
 close
