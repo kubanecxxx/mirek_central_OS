@@ -26,9 +26,9 @@ typedef struct
 {
 	struct
 	{
-		bool_t mute :1;
-		eff_loop_t loop :1;
-		bool_t high_sens :1;
+		bool_t mute :2;
+		eff_loop_t loop :2;
+		bool_t high_sens :2;
 	} s;
 	uint8_t gain;
 	uint8_t volume;
@@ -87,6 +87,10 @@ extern serial_marshall_state_t _marshall_state;
 #define serial_channelLow() \
 	chprintf(marshall,"channel low\r\n\r\n");\
 	_marshall_state.s.high_sens = FALSE; \
+	SULIN
+
+#define serial_channelLowSrat() \
+		chprintf(marshall,"channel low\r\n\r\n");\
 	SULIN
 /**
  * @brief nastaví vstup high sens

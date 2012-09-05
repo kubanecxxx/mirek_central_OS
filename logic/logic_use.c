@@ -269,6 +269,8 @@ static void logic_channel(const logic_channel_t * arg,
 	logic_bit_t i2c_temp = arg->effects;
 	temp &= 0x0FFF;
 
+	logic_marshallSetup(&arg->marshall);
+
 	//relays
 	switch_setRelays(temp);
 
@@ -283,8 +285,6 @@ static void logic_channel(const logic_channel_t * arg,
 		opto_enableEffect(1);
 	else
 		opto_disableEffect(1);
-
-	logic_marshallSetup(&arg->marshall);
 
 	//setup delay and harmonist
 	logic_specific(arg->special);
@@ -314,23 +314,14 @@ static void logic_channel(const logic_channel_t * arg,
  */
 void logic_marshallSetup(const logic_marshall_t * marsh)
 {
+
+	if (marsh->high == EFF_DISABLE)
+		serial_channelLowSrat()
+	;
+
 	//od 1-4 jinak se nic nestane
 	serial_gain(marsh->gain);
 	serial_volume(marsh->volume);
-
-	if (marsh->effLoop != EFF_NOTHING)
-	{
-		if (marsh->effLoop == EFF_ENABLE)
-		{
-			serial_loopOn()
-			;
-		}
-		else
-		{
-			serial_loopBypass()
-			;
-		}
-	}
 
 	if (marsh->high != EFF_NOTHING)
 	{
@@ -342,6 +333,21 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 		else
 		{
 			serial_channelLow()
+			;
+		}
+	}
+
+	if (marsh->effLoop != EFF_NOTHING)
+	{
+		if (marsh->effLoop == EFF_ENABLE)
+		{
+			serial_loopOn()
+			;
+
+		}
+		else
+		{
+			serial_loopBypass()
 			;
 		}
 	}
