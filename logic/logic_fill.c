@@ -528,6 +528,7 @@ void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 				temp->watchEffect = 0;
 				temp->blikat = FALSE;
 				temp->retreat = FALSE;
+				temp->overload = FALSE;
 				temp->prevChannel = NULL;
 
 				if (fill_actives.bank->functions == NULL )
@@ -726,6 +727,23 @@ void cmd_function_retreat(BaseSequentialStream *chp, int argc, char * argv[])
 		fill_actives.function->retreat = TRUE;
 	else
 		fill_actives.function->retreat = FALSE;
+}
+
+void cmd_function_overload(BaseSequentialStream *chp, int argc, char * argv[])
+{
+	if (argc != 1)
+	{
+		SHELL_ERROR(SHELL_FILL_FUNC_OVERLOAD);
+	}
+
+	if (fill_ifOn(argv[0]))
+	{
+		fill_actives.function->overload = TRUE;
+	}
+	else
+	{
+		fill_actives.function->overload = FALSE;
+	}
 }
 
 /*--------------------------------------------------------------------*
@@ -1013,5 +1031,29 @@ void cmd_time(BaseSequentialStream *chp, int argc, char *argv[])
 	else
 	{
 		SHELL_ERROR(SHELL_FILL_TIME);
+	}
+}
+
+void cmd_wahVolume(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 1)
+	{
+		fill_actives.bank->wah.volume = atoi(argv[0]);
+	}
+	else
+	{
+		SHELL_ERROR(SHELL_FILL_WAH_VOLUME);
+	}
+}
+
+void cmd_wahGain(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 1)
+	{
+		fill_actives.bank->wah.gain = atoi(argv[0]);
+	}
+	else
+	{
+		SHELL_ERROR(SHELL_FILL_WAH_GAIN);
 	}
 }

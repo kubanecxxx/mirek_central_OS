@@ -98,7 +98,7 @@ CSRC += $(PORTSRC) \
        $(I2C_USER_SRC) \
        $(USB_USER_SRC) 
        
-CSRC += main.c chsprintf/chsprintf.c
+CSRC += main.c chsprintf/chsprintf.c wah/wah.c
 
 INCDIR += chsprintf
 
@@ -142,7 +142,7 @@ ASMSRC = $(PORTASM)
 INCDIR += $(PORTINC) $(KERNINC) $(TESTINC) \
          $(HALINC) $(PLATFORMINC) $(BOARDINC) \
          $(CHIBIOS)/os/various $(I2C_USER_INC) \
-         $(USB_USER_INC) port
+         $(USB_USER_INC) port wah
 
 #
 # Project, sources and paths

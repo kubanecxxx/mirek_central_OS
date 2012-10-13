@@ -17,6 +17,7 @@
 #include "logic_flash.h"
 #include "string.h"
 #include "gui_MainScreen.h"
+#include "wah.h"
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -309,11 +310,15 @@ static void logic_channel(const logic_channel_t * arg,
 	gui_putChannel(arg);
 }
 
+MUTEX_DECL(marshall_mutex);
+
 /**
  * @brief nastavení maršála po complotě
  */
 void logic_marshallSetup(const logic_marshall_t * marsh)
 {
+
+	chMtxLock(&marshall_mutex);
 
 	if (marsh->high == EFF_DISABLE)
 		serial_channelLowSrat()
@@ -367,6 +372,8 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 	}
 
 	gui_putMarshall(marsh);
+
+	chMtxUnlock();
 }
 
 /**

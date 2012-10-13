@@ -44,6 +44,7 @@ void cmd_function_led(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_function_watch(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_function_blink(BaseSequentialStream *chp, int argc, char * argv[]);
 void cmd_function_retreat(BaseSequentialStream *chp, int argc, char * argv[]);
+void cmd_function_overload(BaseSequentialStream *chp, int argc, char * argv[]);
 
 /**
  * remap set of shell commands
@@ -68,6 +69,9 @@ void cmd_button_call(BaseSequentialStream *chp, int argc, char *argv[]);
 
 void cmd_bend(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_time(BaseSequentialStream *chp, int argc, char *argv[]);
+
+void cmd_wahVolume(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_wahGain(BaseSequentialStream *chp, int argc, char *argv[]);
 
 #ifdef __cplusplus
 }

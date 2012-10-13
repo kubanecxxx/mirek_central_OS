@@ -253,6 +253,7 @@ typedef struct
 	uint8_t watchEffect;
 	bool_t blikat;
 	bool_t retreat;
+	bool_t overload;
 	logic_channel_t * prevChannel;
 } logic_function_t;
 
@@ -360,6 +361,16 @@ typedef struct
 } logic_bend_t;
 
 /**
+ * @brief nastavení volume a gainu když se zapne wah
+ * @ingroup LOGIC_HL
+ */
+typedef struct
+{
+	uint8_t volume;
+	uint8_t gain;
+} logic_wah_t;
+
+/**
  * @brief celá banka
  * @ingroup LOGIC_HL
  *
@@ -382,6 +393,7 @@ typedef struct
 	logic_remap_t * remaps;
 	logic_button_t * buttons;
 	logic_bend_t bend;
+	logic_wah_t wah;
 } logic_bank_t;
 
 /**
@@ -440,6 +452,7 @@ typedef struct
 #define SHELL_FILL_FUNC_CONDITION "nastaveni kanalu v kterym ma funkce fungovat. Pouziti: jenom jeden argument jmeno kanalu, pokud se prikaz vubec nenapise tak zadna podminka neni a pude to vzdycky\n"
 #define SHELL_FILL_FUNC_BLINK "nastaveni jesli to ma blikat, jeden argument on/off\n"
 #define SHELL_FILL_FUNC_RETREAT "nastaveni jesli se ma vratit do kanalu kterej ma jako podminku pokud se stoupne 2x , parametr on/off"
+#define SHELL_FILL_FUNC_OVERLOAD "nastaveni jesli ma prebijet nastaveni kanalu parametr on/off"
 
 #define SHELL_FILL_REMAP_ADD "Vytvori novy premapovani ktery muze mezi sebou prohodit na tlacitku dve funkce. Pouziti jenom jeden argument jmeno remapu\n"
 #define SHELL_FILL_REMAP_CONDITION "Nastavi cislo kanalu v kterym ma remap fungovat jeden argument cislo kanalu\n"
@@ -452,5 +465,8 @@ typedef struct
 
 #define SHELL_FILL_BEND "Nastaveni bendu v bance. Pouziti 3 parametry, volume(0-4095), key (0-11), harmony(0-10)\n"
 #define SHELL_FILL_TIME "Jeden argument - kolik ms ma cekat\n"
+
+#define SHELL_FILL_WAH_VOLUME "nastaveni kterej volume kanal se vybere kdyz si zapnes wah; 0-4 (0 neudela nic)"
+#define SHELL_FILL_WAH_GAIN "nastaveni kterej preamp kanal se vybere kdyz si zapnes wah; 0-4 (0 neudela nic)"
 
 #endif /* LOGIC_TYPES_H_ */

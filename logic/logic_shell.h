@@ -25,6 +25,7 @@
 {	"fun_watch" , cmd_function_watch},
 {	"fun_blink", cmd_function_blink},
 { "fun_retreat", cmd_function_retreat},
+{ "fun_overload" , cmd_function_overload},
 {	"remap", cmd_remapAdd},
 //{	"rem_led" , cmd_remap_led},
 {	"rem_podminka", cmd_remap_prevCondition},
@@ -38,5 +39,7 @@
 //{	"tlac_drzet", cmd_button_hold},
 {	"bend", cmd_bend},
 {	"time", cmd_time},
+{ "wah_volume" , cmd_wahVolume},
+{ "wah_gain" , cmd_wahGain},
 
 #endif /* LOGIC_SHELL_H_ */

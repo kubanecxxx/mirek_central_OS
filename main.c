@@ -31,6 +31,7 @@
 #include "logic_use.h"
 #include "logic_types.h"
 #include "gui_master.h"
+#include "wah.h"
 
 /*
  * external interrupt system config
@@ -119,6 +120,11 @@ int main(void)
 	 * start external interrupt system
 	 */
 	extStart(&EXTD1, &extcfg);
+
+	/*
+	 * start wah thread
+	 */
+	wah_init();
 
 	/*
 	 * Normal main() thread activity, in this demo it does nothing except
