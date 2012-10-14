@@ -30,6 +30,8 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_channel_effs(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_channel_marshall(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_channel_special(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_channel_canOverload(BaseSequentialStream *chp, int argc, char *argv[]);
+void cmd_channel_color(BaseSequentialStream *chp, int argc, char *argv[]);
 
 /*
  * function set of shell commands
@@ -44,7 +46,8 @@ void cmd_function_led(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_function_watch(BaseSequentialStream *chp, int argc, char *argv[]);
 void cmd_function_blink(BaseSequentialStream *chp, int argc, char * argv[]);
 void cmd_function_retreat(BaseSequentialStream *chp, int argc, char * argv[]);
-void cmd_function_overload(BaseSequentialStream *chp, int argc, char * argv[]);
+void cmd_function_overloadVolume(BaseSequentialStream *chp, int argc, char * argv[]);
+void cmd_function_overloadEff(BaseSequentialStream *chp, int argc, char * argv[]);
 
 /**
  * remap set of shell commands

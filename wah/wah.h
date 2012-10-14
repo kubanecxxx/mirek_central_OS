@@ -20,6 +20,7 @@ extern "C" {
 /* Exported functions --------------------------------------------------------*/
 void wah_init(void);
 inline bool_t wah_isEnabled(void);
+inline void wah_event(void);
 
 #ifdef __cplusplus
 }

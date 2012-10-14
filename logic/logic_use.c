@@ -39,6 +39,12 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 static void logic_channel(const logic_channel_t * arg,
 		const logic_button_t * but);
 
+static struct
+{
+	const logic_function_t * arg[20];
+	uint8_t count;
+} active_functions;
+
 Thread * thd_logic_scan = NULL;
 Thread * thd_logic_blinking = NULL;
 Thread * thd_logic_specific = NULL;
@@ -143,10 +149,49 @@ static bool_t logic_functionLeds(const logic_function_t * arg, uint16_t pin)
 		if (watcha == TRUE)
 		{
 			foot_SetLedsBoth(yellow_i | yellow, green_i | green);
+			/*
+			 * projit pole a pokud už tam je tak ho nepřidávat
+			 */
+
+			if (arg->overloadEff || arg->overloadVolume)
+			{
+				int i;
+				bool_t uz = FALSE;
+				for (i = 0; i < active_functions.count; i++)
+				{
+					if (active_functions.arg[i] == arg)
+					{
+						uz = TRUE;
+						break;
+					}
+				}
+
+				if (uz == FALSE)
+					active_functions.arg[active_functions.count++] = arg;
+			}
 		}
 		else
 		{
 			foot_SetLedsBoth(yellow_i & (~yellow), green_i & (~green));
+			/*
+			 * projit pole a pokud tam je tak ho vyhodit a pole posunout
+			 * pokud tam neni tak nedělat nic
+			 */
+			int i, j;
+			for (i = 0; i < active_functions.count; i++)
+			{
+				if (active_functions.arg[i] == arg)
+				{
+					//vyhodit ho
+					for (j = i; j < active_functions.count; j++)
+					{
+						active_functions.arg[j] = active_functions.arg[j + 1];
+					}
+					active_functions.count--;
+					break;
+				}
+			}
+
 			return TRUE;
 		}
 	}
@@ -173,6 +218,12 @@ static void logic_function(const logic_function_t * arg,
 	logic_dibit_t temp_i2c = arg->effects;
 
 	logic_specific(arg->special);
+
+	uint32_t old_state_eff = switch_getRelays();
+	old_state_eff |= opto_getEffects() << 20;
+	old_state_eff |= delay_get() << 30;
+	uint8_t in = harm_getInputs();
+	old_state_eff |= harm_getInput_LED(in) << 31;
 
 	//relays
 	uint8_t i;
@@ -222,7 +273,22 @@ static void logic_function(const logic_function_t * arg,
 	else if (temp_i2c.s.eff13 == EFF_TOGGLE)
 		delay_toggle();
 
-	logic_marshallSetup(&arg->marshall);
+	uint32_t new_state_eff = switch_getRelays();
+	new_state_eff |= opto_getEffects() << 20;
+	new_state_eff |= delay_get() << 30;
+	in = harm_getInputs();
+	new_state_eff |= harm_getInput_LED(in) << 31;
+
+	uint32_t diff = new_state_eff ^ old_state_eff;
+
+	const logic_marshall_t * marsh;
+	if (active.bank->channels[active.activeChannel - 1].VolumeOverloadEnabled
+			&& new_state_eff & diff)
+		marsh = &arg->marshall;
+	else
+		marsh = &active.bank->channels[active.activeChannel - 1].marshall;
+
+	logic_marshallSetup(marsh);
 }
 
 static void logic_channelLeds(uint8_t pin, logic_ledColor_t coun)
@@ -269,8 +335,67 @@ static void logic_channel(const logic_channel_t * arg,
 	//I2C bits 28 - harmonist ,29 - delay
 	logic_bit_t i2c_temp = arg->effects;
 	temp &= 0x0FFF;
+	const logic_marshall_t * marsh;
 
-	logic_marshallSetup(&arg->marshall);
+	/*
+	 * projit všechny funkce ješli některá nemá overload
+	 * pokud má overloadvolume tak volat změněné marshall o to co je overloadnuty
+	 *
+	 * pokud je overload na effekt tak změnit nastavení efektů - kanál muže jenom zapinat
+	 * ne vypinat
+	 *
+	 */
+
+	marsh = &arg->marshall;
+
+	int j;
+	for (j = 0; j < active_functions.count; j++)
+	{
+		if (active_functions.arg[j]->overloadVolume
+				&& arg->VolumeOverloadEnabled)
+			marsh = &active_functions.arg[j]->marshall;
+
+		if (active_functions.arg[j]->overloadEff)
+		{
+			logic_dibit_t eff = active_functions.arg[j]->effects;
+
+			int i;
+			for (i = 0; i < 12; i++)
+			{
+				if (((eff.w & 0b11) == EFF_ENABLE)
+						|| ((eff.w & 0b11) == EFF_TOGGLE))
+				{
+					temp |= (1 << i);
+				}
+				eff.w >>= 2;
+			}
+
+			//overdrive
+			if (eff.s.eff14 == EFF_ENABLE || eff.s.eff14 == EFF_TOGGLE)
+				i2c_temp.s.bit14 = TRUE;
+
+			//skuner
+			if (eff.s.eff15 == EFF_ENABLE || eff.s.eff15 == EFF_TOGGLE)
+				i2c_temp.s.bit15 = TRUE;
+
+			//harmonist
+			if (eff.s.eff12 == EFF_ENABLE || eff.s.eff12 == EFF_TOGGLE)
+				i2c_temp.s.bit12 = TRUE;
+
+			//delay
+			if (eff.s.eff13 == EFF_ENABLE || eff.s.eff13 == EFF_TOGGLE)
+				i2c_temp.s.bit13 = TRUE;
+		}
+	}
+
+	if (!wah_isEnabled())
+	{
+		logic_marshallSetup(marsh);
+	}
+	else
+	{
+		wah_event();
+	}
 
 	//relays
 	switch_setRelays(temp);
@@ -306,7 +431,13 @@ static void logic_channel(const logic_channel_t * arg,
 		delay_off();
 
 	if (but != NULL )
-		logic_channelLeds(but->button.pin, but->button.count);
+	{
+		if (arg->led == COL_NONE)
+			logic_channelLeds(but->button.pin, but->button.count);
+		else
+			logic_channelLeds(but->button.pin, arg->led);
+	}
+
 	gui_putChannel(arg);
 }
 
@@ -492,6 +623,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 	static uint8_t remap_count = 0;
 	static bool_t retreat = FALSE;
 	static logic_function_t * last_func = 0;
+	static logic_button_t * lastBut = NULL;
 	logic_button_t * but;
 	uint8_t prevChannel = active.activeChannel;
 	uint8_t i;
@@ -534,17 +666,26 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 
 		if (call->callType == callType_channel)
 		{
+			//odmapuje na defaultni hodnotu minuly tlačitko s kanálem
+			if (lastBut != but)
+			{
+				if (lastBut != NULL)
+					*lastBut->ramCalls = NULL;
+				lastBut = but;
+			}
+
 			while (remap_count)
 			{
 				remap_count--;
 				logic_remap(bank, lastRemap[remap_count], TRUE);
 			}
 			channel = (logic_channel_t *) call->call;
-			logic_channel(channel, but);
 			active.activeChannel = channel->index;
 			active.activeChannelName = channel->name;
+			logic_channel(channel, but);
 			retreat = FALSE;
 			last_func = NULL;
+
 		}
 		else if (call->callType == callType_function)
 		{
@@ -557,9 +698,9 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 					//return back
 					if (func->prevChannel != NULL )
 					{
-						logic_channel(func->prevChannel, NULL );
 						active.activeChannel = channel->index;
 						active.activeChannelName = channel->name;
+						logic_channel(func->prevChannel, NULL );
 					}
 					last_func = 0;
 					retreat = FALSE;
@@ -588,7 +729,8 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 					remap_count = 0;
 				}
 				logic_remap(bank, remap, FALSE);
-				lastRemap[remap_count++] = remap;
+				if (remap->newCall.callType != callType_channel)
+					lastRemap[remap_count++] = remap;
 				logic_channelLeds(0, COL_NONE);
 			}
 		}

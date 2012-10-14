@@ -117,6 +117,55 @@ static void cmd_clear(BaseSequentialStream *chp, int argc, char *argv[])
 #ifdef I2C_HARMONIST_SHELL
 static logic_specific_t special;
 
+void * _sbrk(size_t size)
+{
+	return chCoreAlloc(size);
+}
+
+static void cmd_harmonistUplne(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc == 1)
+	{
+		if (!strcmp(argv[0], "on"))
+			harm_enable();
+		else if (!strcmp(argv[0], "off"))
+			harm_disable();
+	}
+	else if (argc == 2)
+	{
+		float temp2 = atoff(argv[1]);
+		uint16_t temp = DAC_VOLTAGE(temp2);
+		if (!strcmp(argv[0], "volume"))
+		{
+			_dac_write(CHAN_VOLUME,temp);
+		}
+
+		else if (!strcmp(argv[0], "key"))
+		{
+			_dac_write(CHAN_KEY,temp);
+		}
+
+		else if (!strcmp(argv[0], "harmony"))
+		{
+			_dac_write(CHAN_HARM,temp);
+		}
+
+		else if (!strcmp(argv[0], "mode"))
+		{
+			_dac_write(CHAN_MODE,temp);
+		}
+		else
+			SHELL_ERROR_USER(SHELL_HARMONIST);
+
+		//logic_specific(&special);
+	}
+	else
+	{
+		SHELL_ERROR_USER(SHELL_HARMONIST);
+	}
+
+}
+
 static void cmd_harmonist(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	if (argc == 1)
@@ -281,6 +330,7 @@ const ShellCommand commands[] =
 #endif
 #ifdef I2C_HARMONIST_SHELL
 		{ "harm", cmd_harmonist },
+		{ "harm_uplne", cmd_harmonistUplne },
 #endif
 #ifdef DELAY_SHELL
 		{ "delay", cmd_delay },

@@ -296,6 +296,7 @@ logic_remap_t * logic_flashWriteAllRemaps(logic_bank_t * bank)
 	const logic_button_t * but_it;
 	const logic_function_t * func_it;
 	const logic_remap_t * remap_it;
+	const logic_channel_t * chan_it;
 	uint8_t cunt = bank->remapCount;
 	uint8_t i, j;
 
@@ -356,6 +357,23 @@ logic_remap_t * logic_flashWriteAllRemaps(logic_bank_t * bank)
 			{
 				remap->oldCall.callType = callType_remap;
 				remap->oldCall.call = remap_it;
+			}
+		}
+
+		//vypočitat přemapování kanálů
+		for (j = 0; j < bank->channelCount; j++)
+		{
+			chan_it = &bank->channels[j];
+
+			if (!strcmp(newName, chan_it->name))
+			{
+				remap->newCall.callType = callType_channel;
+				remap->newCall.call = chan_it;
+			}
+			else if (!strcmp(oldName, chan_it->name))
+			{
+				remap->oldCall.callType = callType_channel;
+				remap->oldCall.call = chan_it;
 			}
 		}
 

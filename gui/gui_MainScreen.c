@@ -88,7 +88,7 @@ static void putMarshall(const logic_marshall_t * marshall)
 
 	char buffer[30];
 
-	chsprintf(buffer, "Pre.: %d Master: %d", serial_getGain(),
+	chsprintf(buffer, "Pre.: %d Master: %d  ", serial_getGain(),
 			serial_getVolume());
 	SPEC(buffer, 5, 160);
 

@@ -222,6 +222,8 @@ typedef struct
 	const char * name;
 	logic_bit_t effects;
 	uint8_t index;
+	uint8_t VolumeOverloadEnabled;
+	logic_ledColor_t led;
 
 	logic_specific_t * special;
 	logic_marshall_t marshall;
@@ -253,7 +255,8 @@ typedef struct
 	uint8_t watchEffect;
 	bool_t blikat;
 	bool_t retreat;
-	bool_t overload;
+	uint16_t overloadVolume;
+	uint16_t overloadEff;
 	logic_channel_t * prevChannel;
 } logic_function_t;
 
@@ -443,6 +446,8 @@ typedef struct
 #define SHELL_FILL_CHANNEL_MARS "Do vytvorenyho kanalu nastavi marshala. Pouziti: vzdy dva argumenty, prvni muze byt preamp; volume; mute; sens; smycky \n preamp a volume potom 1-4; mute on/off; sens high/low; smycka on/off\n"
 #define SHELL_FILL_CHANNEL_EFFS "Do vytvorenyho kanalu nastavi ktery efekty zapnout a ktery vypnout. Pouziti: vzdy dva argumenty prvni jmeno efektu (superdrive_true, wah, compresor phaser, overdrive, chorus, detox, superdrive_norm, tuner, dd3, harmonist) nebo cislo efektu 0 - 15	(0-6 jsou uz pojmenovany a pouzity, 7 a vejs je rezerva k dalsimu pouziti v budoucnu)\n"
 #define SHELL_FILL_CHANNEL_SPECIAL "Pouziti: nastaveni delaye a harmonistu, vzdy tri argumenty, \n 	prvni je delay nebo harmonist \n delay ma potom dalsi nastaveni volume a time + jejich hodnota 0-255 \n harmonist ma nastaveni mode(0-4), key(0-11), harmony(0-10), volume(0-4095)\n"
+#define SHELL_FILL_CHANNEL_OVERLOAD "povoli pretizeni hlasitosti kanalu on/off \n"
+#define SHELL_FILL_CHANNEL_COLOR "vybere barvu ledku v kanalu zelena/zluta"
 
 #define SHELL_FILL_FUNC_ADD "Vytvori novou funkci. Pouziti: jeden argument - originalni jmeno funkce, jeji defaultni nastaveni je ze nic nemeni\n"
 #define SHELL_FILL_FUNC_MARS "Nastaveni marshala. Pouziti: dva argumenty preamp/volume/mute/sens/smycka, volume a preamp 1-4, 0 neudela nic; zbytek on/off/toggle\n"

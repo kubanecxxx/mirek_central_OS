@@ -28,7 +28,7 @@ extern "C"
  * @brief Počet relé
  * @ingroup Relays
  */
-#define RELAY_COUNT 15
+#define RELAY_COUNT 11
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions --------------------------------------------------------*/
 bool_t switch_getRelay(uint8_t relay);

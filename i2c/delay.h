@@ -66,7 +66,7 @@ extern "C"
 ///@brief vypnout delay
 #define delay_off() _delay_onOff(1)
 ///@brief přepnout delay
-#define delay_toggle() _delay_onOff(!delay_get())
+#define delay_toggle() if (delay_get()) _delay_onOff(1); else _delay_onOff(0);
 
 ///@brief nastavit delay_volume
 #define delay_volume(x) _delay_dalas(DAL_POTVOLUME,x)
@@ -81,7 +81,7 @@ extern "C"
 #ifdef I2C_DD3
 void _delay_onOff (uint8_t data);
 void _delay_dalas(uint8_t channel, uint8_t value);
-bool_t delay_get(void);
+uint8_t delay_get(void);
 #else
 #define _delay_onOff(d) NULL
 #define _delay_dalas(d,value) NULL

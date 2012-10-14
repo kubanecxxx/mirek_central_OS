@@ -322,6 +322,8 @@ void cmd_channelAdd(BaseSequentialStream *chp, int argc, char *argv[])
 		temp->marshall.high = EFF_ENABLE;
 		temp->name = NULL;
 		temp->special = NULL;
+		temp->VolumeOverloadEnabled = 0;
+		temp->led = COL_NONE;
 
 		if (fill_actives.bank->channels == NULL )
 		fill_actives.bank->channels = fill_actives.channel;
@@ -497,13 +499,45 @@ static void _cmd_special(BaseSequentialStream *chp, int argc, char *argv[],
 	}
 }
 
-			/*--------------------------------------------------------------------*
-			 * function commands
-			 *--------------------------------------------------------------------*/
+void cmd_channel_canOverload(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc != 1)
+	{
+		SHELL_ERROR(SHELL_FILL_CHANNEL_OVERLOAD);
+		return;
+	}
 
-			/**
-			 * @ingroup logic_function
-			 */
+	if (fill_ifOn(argv[0]))
+	{
+		fill_actives.channel->VolumeOverloadEnabled = 1;
+	}
+	else
+	{
+		fill_actives.channel->VolumeOverloadEnabled = 0;
+	}
+}
+
+void cmd_channel_color(BaseSequentialStream *chp, int argc, char *argv[])
+{
+	if (argc != 1)
+	{
+		SHELL_ERROR(SHELL_FILL_CHANNEL_COLOR);
+		return;
+	}
+
+	logic_ledColor_t led;
+	_led(argv[0], &led);
+
+	fill_actives.channel->led = led;
+}
+
+/*--------------------------------------------------------------------*
+ * function commands
+ *--------------------------------------------------------------------*/
+
+/**
+ * @ingroup logic_function
+ */
 void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	logic_function_t * temp;
@@ -528,7 +562,8 @@ void cmd_functionAdd(BaseSequentialStream *chp, int argc, char *argv[])
 				temp->watchEffect = 0;
 				temp->blikat = FALSE;
 				temp->retreat = FALSE;
-				temp->overload = FALSE;
+				temp->overloadEff = 0;
+				temp->overloadVolume = 0;
 				temp->prevChannel = NULL;
 
 				if (fill_actives.bank->functions == NULL )
@@ -729,20 +764,41 @@ void cmd_function_retreat(BaseSequentialStream *chp, int argc, char * argv[])
 		fill_actives.function->retreat = FALSE;
 }
 
-void cmd_function_overload(BaseSequentialStream *chp, int argc, char * argv[])
+void cmd_function_overloadVolume(BaseSequentialStream *chp, int argc,
+		char * argv[])
 {
 	if (argc != 1)
 	{
 		SHELL_ERROR(SHELL_FILL_FUNC_OVERLOAD);
+		return;
 	}
 
 	if (fill_ifOn(argv[0]))
 	{
-		fill_actives.function->overload = TRUE;
+		fill_actives.function->overloadVolume = 1;
 	}
 	else
 	{
-		fill_actives.function->overload = FALSE;
+		fill_actives.function->overloadVolume = 0;
+	}
+}
+
+void cmd_function_overloadEff(BaseSequentialStream *chp, int argc,
+		char * argv[])
+{
+	if (argc != 1)
+	{
+		SHELL_ERROR(SHELL_FILL_FUNC_OVERLOAD);
+		return;
+	}
+
+	if (fill_ifOn(argv[0]))
+	{
+		fill_actives.function->overloadEff = 1;
+	}
+	else
+	{
+		fill_actives.function->overloadEff = 0;
 	}
 }
 

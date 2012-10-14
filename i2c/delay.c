@@ -43,7 +43,7 @@ void _delay_onOff(uint8_t data)
 /**
  * @brief vyčte jesli je DD3 zapnuty nebo vypnuty
  */
-bool_t delay_get(void)
+uint8_t delay_get(void)
 {
 	uint8_t txbuf[2];
 	uint8_t rxbuf[2];
@@ -54,10 +54,7 @@ bool_t delay_get(void)
 	i2cMasterTransmit(&I2CD1, DELAY_PCA, txbuf, 1, rxbuf, 2);
 	i2cReleaseBus(&I2CD1);
 
-	if ((rxbuf[0] & 1) == 1)
-		return TRUE;
-	else
-		return FALSE;
+	return (rxbuf[0] & 1);
 }
 
 /**

@@ -22,6 +22,7 @@ extern logic_active_t active;
 /* Private variables ---------------------------------------------------------*/
 static WORKING_AREA(wa_wah, 256);
 static uint8_t state;
+static uint8_t prev_state;
 
 /* Private function prototypes -----------------------------------------------*/
 void wah_thread(void * arg);
@@ -29,7 +30,7 @@ void wah_thread(void * arg);
 
 void wah_init(void)
 {
-	chThdCreateStatic(&wa_wah, sizeof(wa_wah), NORMALPRIO, (tfunc_t) wah_thread,
+	chThdCreateStatic(&wa_wah, sizeof(wa_wah), NORMALPRIO - 3, (tfunc_t) wah_thread,
 			NULL );
 }
 
@@ -41,10 +42,15 @@ bool_t wah_isEnabled(void)
 		return FALSE;
 }
 
+void wah_event(void)
+{
+	prev_state = ~state;
+}
+
 void wah_thread(void * arg)
 {
 	(void) arg;
-	uint8_t prev_state;
+
 	logic_marshall_t marsh;
 
 	chRegSetThreadName("wah");
