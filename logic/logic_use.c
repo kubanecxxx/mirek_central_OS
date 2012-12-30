@@ -336,6 +336,7 @@ static void logic_channel(const logic_channel_t * arg,
 	logic_bit_t i2c_temp = arg->effects;
 	temp &= 0x0FFF;
 	const logic_marshall_t * marsh;
+	logic_marshall_t marsh_temp;
 
 	/*
 	 * projit všechny funkce ješli některá nemá overload
@@ -353,7 +354,19 @@ static void logic_channel(const logic_channel_t * arg,
 	{
 		if (active_functions.arg[j]->overloadVolume
 				&& arg->VolumeOverloadEnabled)
-			marsh = &active_functions.arg[j]->marshall;
+		{
+			//memcpy (&marsh_temp,&active_functions.arg[j]->marshall, sizeof(logic_marshall_t));
+
+			if (marsh_temp.gain == 0)
+				marsh_temp.gain = marsh->gain;
+
+			if (marsh_temp.volume == 0)
+				marsh_temp.volume = marsh->volume;
+
+			marsh_temp.high = arg->marshall.high;
+
+			marsh = &marsh_temp;
+		}
 
 		if (active_functions.arg[j]->overloadEff)
 		{
@@ -655,6 +668,10 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 	logic_remap_t * remap;
 	bool_t jednou = FALSE;
 
+#ifdef MUTEEEE
+	chprintf(marshall,"mute on\r\n\r\n");
+#endif
+
 	for (i = 0; i < but->buttonCallCount; i++)
 	{
 		/*vyhrabat to prvni z ramky kvuli přemapování*/
@@ -669,7 +686,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			//odmapuje na defaultni hodnotu minuly tlačitko s kanálem
 			if (lastBut != but)
 			{
-				if (lastBut != NULL)
+				if (lastBut != NULL )
 					*lastBut->ramCalls = NULL;
 				lastBut = but;
 			}
@@ -735,6 +752,13 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			}
 		}
 	}
+#ifdef MUTEEEE
+	if (serial_getMuteState() != TRUE)
+	{
+		chThdSleepMilliseconds(30);
+		chprintf(marshall,"mute off\r\n\r\n");
+	}
+#endif
 }
 
 /**

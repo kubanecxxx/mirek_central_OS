@@ -9,6 +9,8 @@
 
 #include "footswitch.h"
 #include "logic_types.h"
+#include "ssd1289/print.h"
+#include "ssd1289/ssd1289_lld.h"
 
 /**
  * @addtogroup FOOTSWITCH
@@ -117,6 +119,8 @@ static void timeout_cb(void * data)
 static void i2c_receive_thread(void * data)
 {
 	(void) data;
+	static uint8_t temp2 = 0;
+	char retaz[10];
 
 	chRegSetThreadName("i2c footswitch");
 	uint8_t txbuf = PCA_IDR;
@@ -159,6 +163,14 @@ static void i2c_receive_thread(void * data)
 			foot_switch.count = footswitch.count;
 			foot_switch.pin = temp;
 			chEvtBroadcastFlags(&event_i2c_buttons, BUTTON_NOW_EVENT_ID);
+#if 0
+			if (temp == 2)
+			{
+				chsprintf(retaz,"%d",temp2++);
+				disp_PutsStringBackground(retaz,200,10,LCD_GREEN,0,16);
+
+			}
+#endif
 		}
 	}
 }

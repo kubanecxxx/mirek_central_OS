@@ -214,7 +214,7 @@ void cmd_closeLogic(BaseSequentialStream *chp, int argc, char *argv[])
 {
 	(void) argc;
 	(void) argv;
-
+#if 1
 //uložit posledni banku
 	logic_flashWriteBank(fill_actives.bank);
 
@@ -232,9 +232,22 @@ prikazu ne, projdi si to jesli se nevratilo neco s otaznikem)\n\r\n\r");
 				fill_actives.zmrseno);
 
 	/*
-	 * software reset
+	 * nastavit pointery zase na nulu
+	 * a naloadovat znova vlákno
 	 */
 
+	//vymazat cache
+	fill_actives.base.bankCount = 0;
+	fill_actives.base.banks = NULL;
+	fill_actives.base.time = 300;
+	fill_actives.bank = NULL;
+	fill_actives.button = NULL;
+	fill_actives.channel = NULL;
+	fill_actives.function = NULL;
+	fill_actives.remap = NULL;
+	fill_actives.zmrseno = 0;
+
+#endif
 }
 
 /**
