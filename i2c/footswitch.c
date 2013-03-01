@@ -105,6 +105,9 @@ static void timeout_cb(void * data)
 	footswitch.count = 0;
 	footswitch.pin = 0;
 
+	if (foot_switch.count == 0 || foot_switch.pin == 0)
+		return;
+
 	//broadcast event
 	chSysLockFromIsr()
 	;
@@ -131,6 +134,7 @@ static void i2c_receive_thread(void * data)
 
 	while (TRUE)
 	{
+		//čeká na přerušení
 		chEvtWaitAll(EVENT_ID);
 
 		i2cAcquireBus(&I2CD1);
@@ -163,6 +167,8 @@ static void i2c_receive_thread(void * data)
 			foot_switch.count = footswitch.count;
 			foot_switch.pin = temp;
 			chEvtBroadcastFlags(&event_i2c_buttons, BUTTON_NOW_EVENT_ID);
+			static uint32_t brodcasty = 0;
+			brodcasty++;
 #if 0
 			if (temp == 2)
 			{
@@ -222,7 +228,7 @@ void foot_buttons_interrupt(EXTDriver *extp, expchannel_t channel)
 	}
 	extChannelDisableI(extp, channel);
 	chVTSetI(&vt, MS2ST(base->time), timeout_cb, NULL ); //no another interrupt in 200ms (last step)
-	chVTSetI(&vt2, MS2ST(30), (vtfunc_t) glitch, extp);
+	chVTSetI(&vt2, MS2ST(10), (vtfunc_t) glitch, extp);
 
 	chEvtSignalFlagsI(foot_thd, EVENT_ID);
 	chSysUnlockFromIsr()

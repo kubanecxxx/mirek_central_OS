@@ -43,7 +43,7 @@ extern serial_marshall_state_t _marshall_state;
  * @ingroup RS232
  * @param[in] číslo kanálu (1-4)
  */
-#define SULIN //chThdSleepMilliseconds(10)
+#define SULIN //chThdSleepMilliseconds(1)
 #define serial_gain(channel) \
 	if (channel != 0) \
 	{\

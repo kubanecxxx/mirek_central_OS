@@ -38,6 +38,9 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 		eventmask_t mask);
 static void logic_channel(const logic_channel_t * arg,
 		const logic_button_t * but);
+static void logic_marshallMute(void);
+static void logic_marshallUnmute(void);
+static int mutePico = 0;
 
 static struct
 {
@@ -48,6 +51,8 @@ static struct
 Thread * thd_logic_scan = NULL;
 Thread * thd_logic_blinking = NULL;
 Thread * thd_logic_specific = NULL;
+
+//#define MUTEEEE
 
 /* Private functions ---------------------------------------------------------*/
 void logic_init(void)
@@ -73,21 +78,21 @@ void logic_init(void)
 	}
 
 	thd_logic_specific = chThdCreateStatic(&wa_specific, sizeof(wa_specific),
-			NORMALPRIO, (tfunc_t) logic_specificThread, NULL );
+			NORMALPRIO, (tfunc_t) logic_specificThread, NULL);
 
 	active.bank = base->banks;
 
 	//nastavit první kanál
-	if (active.bank->channels != NULL )
-		logic_channel(active.bank->channels, NULL );
+	if (active.bank->channels != NULL)
+		logic_channel(active.bank->channels, NULL);
 	//inicializovat aktivni
 	//počáteční init efektů
 
 	thd_logic_scan = chThdCreateStatic(&wa_scan, sizeof(wa_scan), NORMALPRIO,
-			(tfunc_t) (logic_scanThread), NULL );
+			(tfunc_t) (logic_scanThread), NULL);
 
 	thd_logic_blinking = chThdCreateStatic(&wa_blinking, sizeof(wa_blinking),
-			NORMALPRIO - 1, (tfunc_t) logic_blinkingThread, NULL );
+			NORMALPRIO - 1, (tfunc_t) logic_blinkingThread, NULL);
 }
 
 static void logic_scanThread(void * data)
@@ -100,10 +105,12 @@ static void logic_scanThread(void * data)
 			BUTTON_EVENT_ID | BUTTON_NOW_EVENT_ID);
 
 	eventmask_t mask;
+	static uint32_t recevie = 0;
 
 	while (TRUE)
 	{
-		mask = chEvtWaitAny(BUTTON_NOW_EVENT_ID | BUTTON_EVENT_ID);
+		mask = chEvtWaitOne(BUTTON_NOW_EVENT_ID | BUTTON_EVENT_ID);
+		recevie++;
 		logic_button(active.bank, &foot_switch, mask);
 	}
 }
@@ -267,11 +274,17 @@ static void logic_function(const logic_function_t * arg,
 
 	//delay
 	if (temp_i2c.s.eff13 == EFF_ENABLE)
+	{
 		delay_on();
+	}
 	else if (temp_i2c.s.eff13 == EFF_DISABLE)
+	{
 		delay_off();
+	}
 	else if (temp_i2c.s.eff13 == EFF_TOGGLE)
+	{
 		delay_toggle();
+	}
 
 	uint32_t new_state_eff = switch_getRelays();
 	new_state_eff |= opto_getEffects() << 20;
@@ -316,7 +329,8 @@ static void logic_channelLeds(uint8_t pin, logic_ledColor_t coun)
 		green = pin;
 	}
 
-	foot_SetLedsBoth(yellow, green);
+	foot_SetLedsBoth(yellow, green)
+	;
 }
 
 /**
@@ -375,8 +389,8 @@ static void logic_channel(const logic_channel_t * arg,
 			int i;
 			for (i = 0; i < 12; i++)
 			{
-				if (((eff.w & 0b11) == EFF_ENABLE)
-						|| ((eff.w & 0b11) == EFF_TOGGLE))
+				if (((eff.w & 0b11) == EFF_ENABLE) || ((eff.w & 0b11)
+						== EFF_TOGGLE))
 				{
 					temp |= (1 << i);
 				}
@@ -401,20 +415,7 @@ static void logic_channel(const logic_channel_t * arg,
 		}
 	}
 
-	if (!wah_isEnabled())
-	{
-		logic_marshallSetup(marsh);
-	}
-	else
-	{
-		wah_event();
-	}
-
-	//relays
-	switch_setRelays(temp);
-
 	//optocouplers
-
 	if (i2c_temp.s.bit14)
 		opto_enableEffect(0);
 	else
@@ -425,12 +426,16 @@ static void logic_channel(const logic_channel_t * arg,
 	else
 		opto_disableEffect(1);
 
-	//setup delay and harmonist
-	logic_specific(arg->special);
+	if (!wah_isEnabled())
+	{
+		logic_marshallSetup(marsh);
+	}
+	else
+	{
+		wah_event();
+	}
 
-	if (but != NULL )
-		logic_channelLeds(but->button.pin, but->button.count);
-
+	switch_setRelays(temp);
 	//harmonist
 	if (i2c_temp.s.bit12)
 		harm_enable();
@@ -443,7 +448,13 @@ static void logic_channel(const logic_channel_t * arg,
 	else
 		delay_off();
 
-	if (but != NULL )
+	//setup delay and harmonist
+	logic_specific(arg->special);
+
+	if (but != NULL)
+		logic_channelLeds(but->button.pin, but->button.count);
+
+	if (but != NULL)
 	{
 		if (arg->led == COL_NONE)
 			logic_channelLeds(but->button.pin, but->button.count);
@@ -453,8 +464,21 @@ static void logic_channel(const logic_channel_t * arg,
 
 	gui_putChannel(arg);
 }
-
 MUTEX_DECL(marshall_mutex);
+
+static void logic_marshallMute(void)
+{
+	chMtxLock(&marshall_mutex);
+	serial_mute();
+	chMtxUnlock();
+}
+
+static void logic_marshallUnmute(void)
+{
+	chMtxLock(&marshall_mutex);
+	serial_unmute();
+	chMtxUnlock();
+}
 
 /**
  * @brief nastavení maršála po complotě
@@ -464,25 +488,18 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 
 	chMtxLock(&marshall_mutex);
 
-	if (marsh->high == EFF_DISABLE)
-		serial_channelLowSrat()
-	;
-
-	//od 1-4 jinak se nic nestane
-	serial_gain(marsh->gain);
-	serial_volume(marsh->volume);
+	//if (marsh->high == EFF_DISABLE)
+	//	serial_channelLowSrat();
 
 	if (marsh->high != EFF_NOTHING)
 	{
 		if (marsh->high == EFF_ENABLE)
 		{
-			serial_channelHigh()
-			;
+			serial_channelHigh();
 		}
 		else
 		{
-			serial_channelLow()
-			;
+			serial_channelLow();
 		}
 	}
 
@@ -490,14 +507,12 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 	{
 		if (marsh->effLoop == EFF_ENABLE)
 		{
-			serial_loopOn()
-			;
+			serial_loopOn();
 
 		}
 		else
 		{
-			serial_loopBypass()
-			;
+			serial_loopBypass();
 		}
 	}
 
@@ -505,18 +520,19 @@ void logic_marshallSetup(const logic_marshall_t * marsh)
 	{
 		if (marsh->mute == EFF_ENABLE)
 		{
-			serial_mute()
-			;
+			serial_mute();
 		}
 		else
 		{
-			serial_unmute()
-			;
+			serial_unmute();
 		}
 	}
 
 	gui_putMarshall(marsh);
 
+	//od 1-4 jinak se nic nestane
+	serial_gain(marsh->gain);
+	serial_volume(marsh->volume);
 	chMtxUnlock();
 }
 
@@ -544,10 +560,10 @@ static void logic_remap(const logic_bank_t * bank, const logic_remap_t * remap,
 	}
 
 	//tlačítko není
-	if (but == NULL )
+	if (but == NULL)
 		return;
 
-	if (*(but->ramCalls) == NULL )
+	if (*(but->ramCalls) == NULL)
 	{
 		temp = (logic_buttonCall_t *) chCoreAlloc(
 				but->buttonCallCount * sizeof(logic_buttonCall_t));
@@ -609,7 +625,7 @@ static void logic_remap(const logic_bank_t * bank, const logic_remap_t * remap,
  */
 void logic_specific(const logic_specific_t * arg)
 {
-	if (arg == NULL || thd_logic_specific == NULL )
+	if (arg == NULL || thd_logic_specific == NULL)
 		return;
 
 	if (!(arg->delay.time == 65535 || arg->delay.time == 65535))
@@ -641,42 +657,44 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 	uint8_t prevChannel = active.activeChannel;
 	uint8_t i;
 
-//prvni musi najit button podle čisla a počtu zmačknuti
+	//prvni musi najit button podle čisla a počtu zmačknuti
 	for (i = 0; i < bank->buttonCount; i++)
 	{
 		but = &bank->buttons[i];
 
-		if (but->button.pin == button->pin
-				&& but->button.count == button->count)
+		if (but->button.pin == button->pin && but->button.count
+				== button->count)
 		{
 			break;
 		}
 		but = NULL;
 	}
 
-//žádnej neni mapovanej
-	if (but == NULL )
+	//žádnej neni mapovanej
+	if (but == NULL)
 		return;
 
 	if (((but->bit.now == FALSE) && (mask & BUTTON_NOW_EVENT_ID))
-			|| ((but->bit.now == TRUE)&& (mask &BUTTON_EVENT_ID)))
-			return;
+			|| ((but->bit.now == TRUE) && (mask & BUTTON_EVENT_ID)))
+		return;
 
 	logic_buttonCall_t * call;
 	logic_channel_t * channel;
 	logic_function_t * func;
 	logic_remap_t * remap;
 	bool_t jednou = FALSE;
+	static systime_t time;
+	time = chTimeNow();
 
-#ifdef MUTEEEE
-	chprintf(marshall,"mute on\r\n\r\n");
-#endif
+	//logic_marshallMute();
+
+	//chThdSleepMilliseconds(30);
 
 	for (i = 0; i < but->buttonCallCount; i++)
 	{
 		/*vyhrabat to prvni z ramky kvuli přemapování*/
 		logic_buttonCall_t * tmp = *(but->ramCalls);
-		if (tmp == NULL )
+		if (tmp == NULL)
 			call = &but->calls[i];
 		else
 			call = &tmp[i];
@@ -686,7 +704,7 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			//odmapuje na defaultni hodnotu minuly tlačitko s kanálem
 			if (lastBut != but)
 			{
-				if (lastBut != NULL )
+				if (lastBut != NULL)
 					*lastBut->ramCalls = NULL;
 				lastBut = but;
 			}
@@ -707,17 +725,17 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 		else if (call->callType == callType_function)
 		{
 			func = (logic_function_t *) call->call;
-			if (func->channelCondition == prevChannel
-					|| func->channelCondition == 0)
+			if (func->channelCondition == prevChannel || func->channelCondition
+					== 0)
 			{
 				if (retreat == TRUE && last_func == func)
 				{
 					//return back
-					if (func->prevChannel != NULL )
+					if (func->prevChannel != NULL)
 					{
 						active.activeChannel = channel->index;
 						active.activeChannelName = channel->name;
-						logic_channel(func->prevChannel, NULL );
+						logic_channel(func->prevChannel, NULL);
 					}
 					last_func = 0;
 					retreat = FALSE;
@@ -752,13 +770,8 @@ static void logic_button(const logic_bank_t * bank, const foot_t * button,
 			}
 		}
 	}
-#ifdef MUTEEEE
-	if (serial_getMuteState() != TRUE)
-	{
-		chThdSleepMilliseconds(30);
-		chprintf(marshall,"mute off\r\n\r\n");
-	}
-#endif
+	time = chTimeNow() - time;
+
 }
 
 /**
@@ -784,7 +797,7 @@ static void logic_blinkingThread(void * data)
 
 	while (TRUE)
 	{
-		while (active.bank == NULL )
+		while (active.bank == NULL)
 		{
 			chThdSleepMilliseconds(1000);
 			if (chThdShouldTerminate())
@@ -825,7 +838,7 @@ static void logic_blinkingThread(void * data)
 					 * rozhodnout jesli je to z ramky nebo flašky
 					 */
 					logic_buttonCall_t * calls = *but->ramCalls;
-					if (calls == NULL )
+					if (calls == NULL)
 					{
 						/*
 						 * flaška
@@ -850,8 +863,8 @@ static void logic_blinkingThread(void * data)
 							 * podivat se jesli sou sledovany efekty aktivní a rožnout ledky nebo je rozblikat
 							 */
 							uint8_t num = but->button.pin;
-							if (logic_functionLeds(_func,
-									num) && _func->blikat == TRUE)
+							if (logic_functionLeds(_func, num) && _func->blikat
+									== TRUE)
 							{
 								/*
 								 * ledkou blikat

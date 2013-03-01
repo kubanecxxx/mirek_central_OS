@@ -1,0 +1,275 @@
+//0 zlutej //1 wah //2 compresor //3 phaser //4 smrcka drive //5 chorus //6 detox 
+//12 harmonist //13 delay //14 drive //15 tuner
+
+open
+banka jednicka
+
+//-------2x Clean----------------------------------
+kanal Clean
+kan_marshall preamp 4
+kan_marshall volume 4
+kan_efekty compresor on
+kan_marshall sens low
+kan_efekty detox on
+kan_efekty dd3 on
+kan_special delay volume 40 
+kan_special delay time 1 
+
+kanal SoloClean
+kan_marshall preamp 4
+kan_marshall volume 4
+kan_efekty compresor on
+kan_efekty dd3 on
+kan_marshall sens low
+kan_efekty detox on
+kan_special delay volume 100
+kan_special delay time 30
+kan_led zelena
+
+remap remClean
+rem_tlacitko jedna-Clean
+rem_dva SoloClean
+rem_jedna Clean
+
+tlacitko jedna-Clean 1 1
+tlac_nast Clean
+tlac_nast remClean
+tlac_hned hned
+
+tlacitko jedna-Clean2 1 2
+tlac_nast SoloClean
+tlac_hned hned
+
+//------2x Crunch-------------------------------------
+
+kanal Crunch 
+kan_marshall preamp 2
+kan_marshall volume 2
+kan_efekty dd3 on
+kan_special delay volume 20
+kan_special delay time 1 
+kan_overload on
+
+kanal SoloCrunch 
+kan_marshall preamp 2
+kan_marshall volume 4
+kan_efekty dd3 on
+kan_special delay volume 100
+kan_special delay time 30
+kan_led zelena
+
+remap remCrunch
+rem_tlacitko dva-Crunch
+rem_dva SoloCrunch
+rem_jedna Crunch
+
+tlacitko dva-Crunch 2 1
+tlac_nast Crunch
+tlac_nast remCrunch
+tlac_hned hned
+
+tlacitko dva-Crunch2 2 2
+tlac_nast SoloCrunch
+tlac_hned hned
+
+//------2x ACDC-------------------------------------
+
+kanal ACDC
+kan_marshall preamp 1
+kan_marshall volume 1
+kan_efekty dd3 on
+kan_special delay volume 2
+kan_special delay time 5 
+kan_overload on
+
+kanal SoloACDC
+kan_marshall preamp 1
+kan_marshall volume 3
+kan_efekty superdrive_norm on
+kan_efekty superdrive_true on
+kan_efekty dd3 on
+kan_special delay volume 25
+kan_special delay time 20
+kan_led zelena
+
+remap remACDC
+rem_tlacitko dva-ACDC
+rem_dva SoloACDC
+rem_jedna ACDC
+
+tlacitko dva-ACDC 3 1
+tlac_nast ACDC
+tlac_nast remACDC
+tlac_hned hned
+
+tlacitko tri-ADCD2 3 2
+tlac_nast SoloACDC
+tlac_hned hned
+
+//------2x Rhythm-------------------------------------
+
+kanal Rhythm
+kan_marshall preamp 1
+kan_marshall volume 1
+kan_efekty overdrive on
+kan_special delay volume 70
+kan_special delay time 40
+kan_overload on
+
+kanal SoloRhythm
+kan_marshall preamp 1
+kan_marshall volume 3
+kan_efekty superdrive_true on
+kan_efekty superdrive_norm on
+kan_efekty overdrive on
+kan_efekty dd3 on
+kan_special delay volume 25
+kan_special delay time 20
+kan_led zelena
+
+remap remRhythm
+rem_tlacitko dva-Rhythm
+rem_dva SoloRhythm
+rem_jedna Rhythm
+
+tlacitko dva-Rhythm 4 1
+tlac_nast Rhythm
+tlac_nast remRhythm
+tlac_hned hned
+
+tlacitko ctyri-Ry 4 2
+tlac_nast SoloRhythm
+tlac_hned hned
+
+//------2x Lead-------------------------------------
+
+kanal Lead
+kan_marshall preamp 3
+kan_marshall volume 1
+kan_efekty overdrive on
+kan_special delay volume 70
+kan_special delay time 40
+//kan_overload on
+
+kanal SoloLead
+kan_marshall preamp 3
+kan_marshall volume 3
+kan_efekty superdrive_true on
+kan_efekty superdrive_norm on
+kan_efekty overdrive on
+kan_efekty dd3 on
+kan_special delay volume 15
+kan_special delay time 25
+kan_led zelena
+
+remap remLead
+rem_tlacitko dva-Lead
+rem_dva SoloLead
+rem_jedna Lead
+
+tlacitko dva-Lead 5 1
+tlac_nast Lead
+tlac_nast remLead
+tlac_hned hned
+
+tlacitko pet-lead 5 2
+tlac_nast SoloLead
+tlac_hned hned
+
+//----phaser---------------------------------------
+
+funkce phasertoggle
+fun_marshall smycka on
+fun_efekty phaser toggle
+fun_led zelena
+fun_watch phaser
+fun_marshall volume 3
+fun_overloadEff on
+fun_overloadVolume on
+
+
+tlacitko phaser-but 6 1
+tlac_nast phasertoggle
+//tlac_hned hned
+
+//----chorus---------------------------------------
+
+funkce chorustoggle
+fun_marshall smycka on
+fun_efekty chorus toggle
+fun_led zelena
+fun_watch chorus
+fun_marshall volume 3
+fun_overloadEff on
+fun_overloadVolume on
+
+
+tlacitko chorus-but 7 1
+tlac_nast chorustoggle
+//tlac_hned hned
+
+//----delay---------------------------------------
+
+funkce delayZapnout
+fun_marshall smycka on
+fun_efekty dd3 toggle
+fun_led zelena
+fun_special delay volume 25
+fun_special delay time 20
+fun_watch dd3
+
+tlacitko delay-but 8 1
+tlac_nast delayZapnout
+tlac_hned hned
+
+//---skuner---------------------------------------
+kanal Skuner
+kan_efekty tuner on
+kan_marshall mute on
+
+tlacitko butTuner 8 3
+tlac_nast Skuner
+tlac_hned hned
+
+//---octaver---------------------------------------
+funkce harm-
+fun_marshall smycka on
+fun_efekty harmonist on
+fun_special harmonist mode 2
+fun_special harmonist volume 1000
+fun_special harmonist key 9
+fun_special harmonist harmony 2
+//harmony 8 pro +
+fun_watch harmonist 
+fun_led zluta
+
+tlacitko but_harm 7 2
+tlac_nast harm-
+tlac_hned hned
+
+//---octaver---------------------------------------
+funkce harm+
+fun_marshall smycka on
+fun_efekty harmonist on
+fun_special harmonist mode 2
+fun_special harmonist volume 1000
+fun_special harmonist key 2
+fun_special harmonist harmony 8
+//harmony 8 pro +
+fun_watch harmonist
+fun_led zluta
+
+tlacitko but_harm+ 6 2
+tlac_nast harm+
+tlac_hned hned
+
+//------------------------------------------------
+
+bend 1000 4 4
+time 200
+
+wah_volume 3
+
+close
+
+

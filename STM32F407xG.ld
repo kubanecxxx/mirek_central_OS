@@ -28,7 +28,7 @@ MEMORY
 {
     flash : org = 0x08000000, len = 1M
     ram : org = 0x20000000, len = 100k
-    ram1 : org =0x20019000, len = 10k
+    ram1 : org =0x20019000, len = 10k 
     ethram : org = 0x2001C000, len = 16k
     ccmram : org = 0x10000000, len = 64k
 }
@@ -156,7 +156,7 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         PROVIDE(_fixed_end = .);
-    } > ram1
+    } > ram1 AT > flash
 }
 
 PROVIDE(end = .);

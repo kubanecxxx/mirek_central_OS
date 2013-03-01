@@ -521,6 +521,7 @@
 #if !defined(SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
 #define SYSTEM_HALT_HOOK() {                                                \
   /* System halt code here.*/                                               \
+  asm("bkpt"); \
 }
 #endif
 

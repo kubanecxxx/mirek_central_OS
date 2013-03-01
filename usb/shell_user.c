@@ -117,10 +117,12 @@ static void cmd_clear(BaseSequentialStream *chp, int argc, char *argv[])
 #ifdef I2C_HARMONIST_SHELL
 static logic_specific_t special;
 
+
 void * _sbrk(size_t size)
 {
 	return chCoreAlloc(size);
 }
+
 
 static void cmd_harmonistUplne(BaseSequentialStream *chp, int argc, char *argv[])
 {

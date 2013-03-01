@@ -72,8 +72,11 @@ void wah_thread(void * arg)
 						sizeof(logic_marshall_t));
 
 				//marsh.gain = active.bank->wah.gain;
+				/*
 				if (marsh.volume != 4)
+				*/
 					marsh.volume = active.bank->wah.volume;
+
 
 				logic_marshallSetup(&marsh);
 			}
